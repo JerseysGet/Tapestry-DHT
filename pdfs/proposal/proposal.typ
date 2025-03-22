@@ -20,6 +20,11 @@ This project aims to implement a decentralized overlay network inspired by Tapes
 - *Hashing Mechanism:* SHA-1 or similar
 - *Storage (Resources):* In-memory or simple file-based storage for node states
 
+== Reasoning Behind Technology Choices
+- *Go (Golang) & gRPC*: gRPC provides high-performance,  remote procedure calls (RPCs) with built-in support for error handling and serialization using Protocol Buffers. All of us have experience with gRPC in Go from the Assignment.
+
+- *Prefix-Based Routing Tables*: The original Tapestry paper implements a prefix based routing system, using SHA-1, so we will be implementing the same.
+
 = Project Objectives
 == *Implement Node Discovery & Routing:*
    - Nodes should be able to join and leave dynamically without breaking the system.
