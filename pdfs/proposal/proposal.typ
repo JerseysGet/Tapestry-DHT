@@ -36,7 +36,35 @@ This project aims to implement a decentralized overlay network inspired by Tapes
 
 == *Fault Tolerance & Adaptability:*
    - Handle node failures by reconfiguring routing tables.
-   - Implement redundancy mechanisms to ensure continued operation despite node failures.
+
+= Plan
+
+== Phase 1: Project Setup and Node Management
+- Set up the development environment with Go and gRPC.
+- Implement node initialization using SHA-1 hashing for unique IDs.
+- Develop node join and leave protocols.
+- Establish basic gRPC communication between nodes.
+
+== Phase 2: Routing Table and Message Routing
+- Implement prefix-based routing tables as described in the Tapestry Paper.
+- Implement the routing algorithm to ensure efficient routing in $O(log n)$ hops.
+- Test message forwarding between nodes.
+
+== Phase 3: Resource Lookup
+- Implement the prefix based lookup algorithm from the Tapestry paper.
+- Perform testing of resource storage and retrieval.
+
+== Phase 4: Fault Tolerance and Adaptability
+- Implement heartbeat/etcd/similar checks using gRPC for node failure detection.
+- Develop routing table recovery mechanisms for fault tolerance.
+- Simulate node failures and test recovery.
+
+== Phase 5: Final Testing and Documentation
+- Conduct comprehensive end-to-end testing.
+- Optimize code for routing efficiency and fault recovery.
+- Do performance scaling tests.
+- Write the final report detailing design choices, implementation, and results.
+- Prepare a short demo and presentation.
 
 = Deliverables
 - Implementation of a Tapestry-inspired overlay network with routing, resource lookup, and fault tolerance.

@@ -5,7 +5,7 @@
   set page(margin: 1.25in)
   set par(leading: 0.55em, justify: true)
   set text(12pt, font: "New Computer Modern")
-  show raw: set text(font: "JetBrains Mono")
+  // show raw: set text(font: "JetBrains Mono")
   // show par: set block(spacing: 0.55em)
   // show par: set par(spacing: 0.55em)
   show heading: set block(above: 1.4em, below: 1em)
