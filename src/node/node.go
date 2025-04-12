@@ -21,8 +21,8 @@ type Node struct {
 	BP           util.BackPointerTable
 	ID           uint64
 	Port         int
-	Objects      map[uint64]Object // Object ID -> Object
-	Object_roots map[uint64]int    // Object ID -> Root_Port
+	Objects      map[uint64]Object // Object ID -> Object   
+	Object_Publishers map[uint64]int    // Object ID -> Publisher_Port
 }
 
 func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
