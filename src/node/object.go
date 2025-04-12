@@ -1,6 +1,6 @@
 package main
 
 type Object struct {
-	name    string
-	content string
+	Name    string
+	Content string
 }
