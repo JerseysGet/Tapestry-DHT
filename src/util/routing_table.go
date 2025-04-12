@@ -5,9 +5,9 @@ type RoutingTable struct {
 }
 
 func NewRoutingTable() *RoutingTable {
-	rt := make([][]int32, DIGITS)
+	rt := make([][]int, DIGITS)
 	for i := 0; i < DIGITS; i++ {
-		rt[i] = make([]int32, RADIX)
+		rt[i] = make([]int, RADIX)
 		for j := range(rt[i]) {
 			rt[i][j] = -1
 		}
