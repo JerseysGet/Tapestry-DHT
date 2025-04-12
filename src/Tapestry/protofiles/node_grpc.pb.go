@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NodeServiceClient interface {
-	Route(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*RouteReponse, error)
+	Route(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*RouteResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -37,9 +37,9 @@ func NewNodeServiceClient(cc grpc.ClientConnInterface) NodeServiceClient {
 	return &nodeServiceClient{cc}
 }
 
-func (c *nodeServiceClient) Route(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*RouteReponse, error) {
+func (c *nodeServiceClient) Route(ctx context.Context, in *RouteRequest, opts ...grpc.CallOption) (*RouteResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RouteReponse)
+	out := new(RouteResponse)
 	err := c.cc.Invoke(ctx, NodeService_Route_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (c *nodeServiceClient) Route(ctx context.Context, in *RouteRequest, opts ..
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
 type NodeServiceServer interface {
-	Route(context.Context, *RouteRequest) (*RouteReponse, error)
+	Route(context.Context, *RouteRequest) (*RouteResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -62,7 +62,7 @@ type NodeServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedNodeServiceServer struct{}
 
-func (UnimplementedNodeServiceServer) Route(context.Context, *RouteRequest) (*RouteReponse, error) {
+func (UnimplementedNodeServiceServer) Route(context.Context, *RouteRequest) (*RouteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Route not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
