@@ -17,11 +17,11 @@ import (
 
 type Node struct {
 	pb.UnimplementedNodeServiceServer
-	RT           util.RoutingTable
-	BP           util.BackPointerTable
-	ID           uint64
-	Port         int
-	Objects      map[uint64]Object // Object ID -> Object   
+	RT                util.RoutingTable
+	BP                util.BackPointerTable
+	ID                uint64
+	Port              int
+	Objects           map[uint64]Object // Object ID -> Object
 	Object_Publishers map[uint64]int    // Object ID -> Publisher_Port
 }
 
@@ -78,8 +78,8 @@ func main() {
 	savePortToFile(new_port)
 
 	// register node server and start listening
-	rand.Seed(time.Now().UnixNano())
-	nodeID := rand.Uint64()
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	nodeID := rng.Uint64()
 	var rt util.RoutingTable
 	var bp util.BackPointerTable
 	node := &Node{
