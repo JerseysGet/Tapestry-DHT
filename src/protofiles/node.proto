@@ -19,6 +19,7 @@ message RouteRequest {
 
 message RouteResponse {
     int32 Port = 1;
+    uint64 Id = 2;
 };
 
 message InsertRequest{}
