@@ -16,19 +16,21 @@ import (
 
 type Node struct {
 	pb.UnimplementedNodeServiceServer
-	RT util.RoutingTable
-	BP util.BackPointerTable
-	ID uint64
+	RT           util.RoutingTable
+	BP           util.BackPointerTable
+	ID           uint64
+	objects      map[string]string
+	object_roots map[string]string
 }
 
-func savePortToFile(port int){
+func savePortToFile(port int) {
 
 	file, err := os.OpenFile("ports.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
 	}
-	defer file.Close() 
+	defer file.Close()
 
 	if _, err := file.WriteString(fmt.Sprintf("%d\n", port)); err != nil {
 		fmt.Println("Error writing to file:", err)
@@ -38,7 +40,7 @@ func savePortToFile(port int){
 	fmt.Println("Port saved to ports.txt")
 }
 
-func startSearchForRoot(port int){
+func startSearchForRoot(port int) {
 	if port == -1 {
 		fmt.Println("No root needed")
 		return
@@ -47,7 +49,7 @@ func startSearchForRoot(port int){
 	return
 }
 
-func main(){
+func main() {
 
 	// get port for search from user
 	var port int
