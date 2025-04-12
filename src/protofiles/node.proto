@@ -1,1 +1,24 @@
 syntax = proto3;
+
+option go_package = "Tapestry/protofiles";
+
+service NodeService {
+    rpc Route(RouteRequeest) returns (RouteReponse);
+    // Insert is not an RPC, it just calls various RPCs on the bootstrap node
+    // rpc CopyRoutingTable ???
+    // rpc InformHoleMulticast ???
+    // some rpcs related to packpointers (add to back pointer)
+    rpc Route(RouteRequeest) returns (RouteReponse);
+    // 
+}
+
+message RouteRequest {
+    uint64 Id = 1;
+    int32 Level = 2;
+}
+
+message RouteReponse {
+    int32 Port = 1;
+};
+
+message InsertRequest
