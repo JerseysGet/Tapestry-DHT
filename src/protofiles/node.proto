@@ -38,7 +38,9 @@ message BPUpdateResponse {
 
 message RTUpdateRequest{
     uint64 ReplacementID = 1;
-    int32 Port = 2;
+    int32 ReplacementPort = 2;
+    uint64 ID = 3;
+    int32 Port = 4;
 }
 
 message RTUpdateResponse{
