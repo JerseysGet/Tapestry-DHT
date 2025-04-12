@@ -31,18 +31,16 @@ func (n *Node) Publish(object Object) error {
 	}
 	defer conn.Close()
 	_, err = client.Register(context.Background(), &pb.RegisterRequest{
-		Port: int32(n.Port),
+		Port:      int32(n.Port),
+		Object_ID: uint64(objectID),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to register with root: %v", err)
 	}
-
 	n.Objects[objectID] = Object{
 		Name:    key,
 		Content: value,
 	}
-	n.Object_roots[objectID] = rootPort
-
 	fmt.Printf("[PUBLISH] Key '%s' with ID %s stored locally and published to root %d\n",
 		key, util.HashToString(objectID), rootPort)
 
@@ -50,13 +48,9 @@ func (n *Node) Publish(object Object) error {
 }
 
 func (n *Node) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	objectID := req.Id
 	publisherPort := int(req.Port)
-
-	// Log the replica
+	objectID := uint64(req.Object_ID)
+	n.Object_Publishers[objectID] = publisherPort
 	fmt.Printf("[REGISTER] Received object %s from node %d\n", util.HashToString(objectID), publisherPort)
-
-	// You could store a list of replicas per objectID if needed
-	// For now, just acknowledge receipt
 	return &pb.RegisterResponse{}, nil
 }
