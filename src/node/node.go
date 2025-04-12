@@ -1,17 +1,17 @@
 package main
 
 import (
+	util "Tapestry/util"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
-	"math/rand"
 	"time"
-	"context"
-	util "Tapestry/util"
+
+	pb "Tapestry/protofiles"
 
 	"google.golang.org/grpc"
-	pb "Tapestry/Tapestry/protofiles"
 )
 
 type Node struct {
@@ -21,10 +21,6 @@ type Node struct {
 	ID uint64
 }
 
-func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteResponse, error) {
-	//random implementation of route
-	return &pb.RouteResponse{Port: 0}, nil
-}
 func savePortToFile(port int){
 
 	file, err := os.OpenFile("ports.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
