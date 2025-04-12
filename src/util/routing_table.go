@@ -13,6 +13,6 @@ func NewRoutingTable() *RoutingTable {
 		}
 	}
 	return &RoutingTable{
-		table: rt,
+		Table: rt,
 	}
 }
