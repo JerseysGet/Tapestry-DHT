@@ -6,7 +6,6 @@ import (
 	"unsafe"
 )
 
-type hash_t uint64
 const RADIX = 4
 var DIGIT_SHIFT = bits.TrailingZeros(RADIX)
 var DIGIT_MASK = (1 << DIGIT_SHIFT) - 1;
@@ -17,5 +16,5 @@ func main() {
 	log.Printf("DIGIT_SHIFT= %d", DIGIT_SHIFT)	
 	log.Printf("DIGIT_MASK= %d", DIGIT_MASK)	
 	log.Printf("DIGITS= %d", DIGITS)	
-
+	
 }
