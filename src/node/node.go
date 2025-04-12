@@ -92,6 +92,26 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterNodeServiceServer(grpcServer, node)
+
+	// goroutine for republishing
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				for _, obj := range node.Objects {
+					err := node.Publish(obj)
+					if err != nil {
+						fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
+					} else {
+						fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
+					}
+				}
+			}
+		}
+	}()
+
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
