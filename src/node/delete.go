@@ -1,6 +1,7 @@
 package main
 
 import (
+	util "Tapestry/util"
 	pb "Tapestry/protofiles"
 	"context"
 )
@@ -37,10 +38,37 @@ func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			}
 		}
 	}
-	// still in progress
+
 	if found == 0 {
 		return &pb.RTUpdateResponse{Success: false}, nil
 	}
+	
+
+	for i=0; i < util.DIGITS; i++ {
+		id_digit := util.GetDigit(replacementID, i)
+		if n.RT.Table[i][id_digit] == -1 {
+			n.RT.Table[i][id_digit] = replacementPort
+
+			// connect to update back pointer of replacement node
+			conn, to_client, err := GetNodeClient(replacementPort)
+			if err != nil {
+				log.Panicf("error in connecting (temporary panic): %v", err.Error())
+			}
+			defer conn.Close()
+
+			// update back pointer
+			resp, err =  to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
+			if err != nil {
+				log.Panicf("error in sending BPUpdate: %v", err.Error())
+				return nil, err
+			}
+			return &pb.RTUpdateResponse{Success: true}, nil
+
+		}else{
+			continue
+		}
+	}
+
 	return &pb.RTUpdateResponse{Success: true}, nil
 
 }
