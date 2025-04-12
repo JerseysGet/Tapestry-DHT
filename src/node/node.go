@@ -15,11 +15,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type Object struct {
-	name    string
-	content string
-}
-
 type Node struct {
 	pb.UnimplementedNodeServiceServer
 	RT           util.RoutingTable
