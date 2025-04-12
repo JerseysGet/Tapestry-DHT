@@ -83,9 +83,12 @@ func main() {
 	var rt util.RoutingTable
 	var bp util.BackPointerTable
 	node := &Node{
-		RT: rt,
-		BP: bp,
-		ID: nodeID,
+		RT:                rt,
+		BP:                bp,
+		ID:                nodeID,
+		Port:              new_port,
+		Objects:           make(map[uint64]Object),
+		Object_Publishers: make(map[uint64]int),
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterNodeServiceServer(grpcServer, node)
