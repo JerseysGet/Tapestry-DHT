@@ -28,7 +28,7 @@ func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	for i, row := range n.RT.Table {
 		for j, val := range row {
 			if val == port {
-				n.RT.Table[i][j] = replacementPort
+				n.RT.Table[i][j] = -1
 				found = 1
 				break
 			}
@@ -37,6 +37,7 @@ func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			}
 		}
 	}
+	// still in progress
 	if found == 0 {
 		return &pb.RTUpdateResponse{Success: false}, nil
 	}
