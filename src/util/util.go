@@ -13,8 +13,8 @@ var DIGIT_MASK = uint64((1 << DIGIT_SHIFT) - 1)
 
 var DIGITS = int(int(8*unsafe.Sizeof(uint64(0))) / DIGIT_SHIFT)
 
-func digitToChar(d uint64) rune {
-	if d < 0 || d >= RADIX {
+func DigitToChar(d uint64) rune {
+	if d >= RADIX {
 		log.Panicf("digit out of range: %d", d)
 	}
 	if d <= 9 {
@@ -23,17 +23,17 @@ func digitToChar(d uint64) rune {
 	return rune('a' + d - 10)
 }
 
-func hashToString(h uint64) string {
+func HashToString(h uint64) string {
 	result := make([]rune, 0, DIGITS)
 	for i := 0; i < DIGITS; i++ {
 		d := uint64(h & DIGIT_MASK)
-		result = append(result, digitToChar(d))
+		result = append(result, DigitToChar(d))
 		h >>= DIGIT_SHIFT
 	}
 	return string(result)
 }
 
-func stringToHash(s string) uint64 {
+func StringToHash(s string) uint64 {
 	if len(s) != DIGITS {
 		log.Panicf("Invalid string length: got %d, want %d", len(s), DIGITS)
 	}
@@ -60,17 +60,17 @@ func stringToHash(s string) uint64 {
 	return h
 }
 
-func getDigit(h uint64, i int) uint64 {
+func GetDigit(h uint64, i int) uint64 {
 	if i < 0 || i >= DIGITS {
 		log.Panicf("Index out of range: %d", i)
 	}
 	return (h >> (i * DIGIT_SHIFT)) & DIGIT_MASK
 }
 
-func commonPrefixLen(a, b uint64) int {
+func CommonPrefixLen(a, b uint64) int {
 	ret := 0
 	for i := 0; i < DIGITS; i++ {
-		if getDigit(a, i) == getDigit(b, i) {
+		if GetDigit(a, i) == GetDigit(b, i) {
 			ret++
 		} else {
 			break
@@ -86,11 +86,11 @@ func commonPrefixLen(a, b uint64) int {
 // 	log.Printf("DIGITS= %d", DIGITS)
 
 // 	h1 := uint64(0xFFFFFFFFFFFFFFFF)
-// 	str := hashToString(h1)
+// 	str := HashToString(h1)
 // 	log.Printf("Original hash: %x", h1)
 // 	log.Printf("String form: %s", str)
 
-// 	h2 := stringToHash(str)
+// 	h2 := StringToHash(str)
 // 	log.Printf("Recovered hash: %x", h2)
 
 // 	if h1 != h2 {
@@ -99,22 +99,22 @@ func commonPrefixLen(a, b uint64) int {
 // 		log.Println("Round-trip success! ✅")
 // 	}
 
-// 	log.Println("Testing getDigit:")
+// 	log.Println("Testing GetDigit:")
 // 	for i := 0; i < DIGITS; i++ {
-// 		d1 := getDigit(h1, i)
-// 		d2 := getDigit(h2, i)
+// 		d1 := GetDigit(h1, i)
+// 		d2 := GetDigit(h2, i)
 // 		log.Printf("Digit %2d: %d vs %d", i, d1, d2)
 // 		if d1 != d2 {
 // 			log.Panicf("Mismatch at digit %d: %d != %d", i, d1, d2)
 // 		}
 // 	}
-// 	log.Println("getDigit works correctly! ✅")
+// 	log.Println("GetDigit works correctly! ✅")
 
 // 	h3 := h1
 // 	h4 := h1 ^ (1 << (2 * DIGIT_SHIFT))
-// 	log.Printf("h1 = %v", hashToString(h1))
-// 	log.Printf("h3 = %v (identical)", hashToString(h3))
-// 	log.Printf("h4 = %v (differs at digit 2)", hashToString(h4))
+// 	log.Printf("h1 = %v", HashToString(h1))
+// 	log.Printf("h3 = %v (identical)", HashToString(h3))
+// 	log.Printf("h4 = %v (differs at digit 2)", HashToString(h4))
 
 // 	log.Printf("commonPrefixLen(h1, h3) = %d (expected %d)", commonPrefixLen(h1, h3), DIGITS)
 // 	log.Printf("commonPrefixLen(h1, h4) = %d (expected 2)", commonPrefixLen(h1, h4))
