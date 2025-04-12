@@ -15,20 +15,27 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type Object struct {
+	name    string
+	content string
+}
+
 type Node struct {
 	pb.UnimplementedNodeServiceServer
-	RT util.RoutingTable
-	BP util.BackPointerTable
-	ID uint64
-	Port int
-	objects      map[string]string
-	object_roots map[string]string
+	RT           util.RoutingTable
+	BP           util.BackPointerTable
+	ID           uint64
+	Port         int
+	objects      map[uint64]Object // Object ID -> Object
+	object_roots map[uint64]int    // Object ID -> Root_Port
 }
 
 func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
 	addr_string := fmt.Sprintf("localhost:%d", port)
 	conn, err := grpc.NewClient(addr_string, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil { return nil, nil, err }
+	if err != nil {
+		return nil, nil, err
+	}
 	return conn, pb.NewNodeServiceClient(conn), nil
 }
 
