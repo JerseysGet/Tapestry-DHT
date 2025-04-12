@@ -79,6 +79,12 @@ func CommonPrefixLen(a, b uint64) int {
 	return ret
 }
 
+func Assert(condition bool, msg string) {
+	if !condition {
+		log.Panic("Assertion failed: " + msg)
+	}
+}
+
 // func main() {
 // 	log.Printf("RADIX= %d", RADIX)
 // 	log.Printf("DIGIT_SHIFT= %d", DIGIT_SHIFT)

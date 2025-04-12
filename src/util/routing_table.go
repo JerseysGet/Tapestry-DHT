@@ -1,7 +1,7 @@
 package util
 
 type RoutingTable struct {
-	table [][]int32
+	Table [][]int32
 }
 
 func NewRoutingTable() *RoutingTable {
