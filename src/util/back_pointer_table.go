@@ -1,13 +1,13 @@
 package util
 
-type Int32Set map[int32]struct{}
+type IntSet map[int]struct{}
 
 type BackPointerTable struct {
-	Set Int32Set
+	Set IntSet
 }
 
 func NewBackPointerTable() *BackPointerTable {
 	return &BackPointerTable{
-		Set: make(Int32Set),
+		Set: make(IntSet),
 	}
 }

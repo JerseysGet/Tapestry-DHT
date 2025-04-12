@@ -4,7 +4,8 @@ option go_package = "Tapestry.com/protofiles";
 
 service NodeService {
     rpc Route(RouteRequest) returns (RouteResponse);
-    rpc BPUpdate(BPUpdateRequest) returns (BPResponseRequest);
+    rpc BPUpdate(BPUpdateRequest) returns (BPUpdateResponse);
+    rpc RTUpdate(RTUpdateRequest) returns (RTUpdateResponse);
     // Insert is not an RPC, it just calls various RPCs on the bootstrap node
     // rpc CopyRoutingTable ???
     // rpc InformHoleMulticast ???
@@ -29,6 +30,7 @@ message BPUpdateRequest {
     int32 Port = 2;
 }
 
-message BPResponseRequest {
+message BPUpdateResponse {
     int32 Status = 1;
 }
+
