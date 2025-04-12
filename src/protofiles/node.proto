@@ -6,6 +6,7 @@ service NodeService {
     rpc Route(RouteRequest) returns (RouteResponse);
     rpc BPUpdate(BPUpdateRequest) returns (BPUpdateResponse);
     rpc RTUpdate(RTUpdateRequest) returns (RTUpdateResponse);
+    rpc BPRemove(BPRemoveRequest) returns (BPRemoveResponse);
     // Insert is not an RPC, it just calls various RPCs on the bootstrap node
     // rpc CopyRoutingTable ???
     // rpc InformHoleMulticast ???
@@ -34,3 +35,19 @@ message BPUpdateResponse {
     int32 Status = 1;
 }
 
+message RTUpdateRequest{
+    uint64 ReplacementID = 1;
+    int32 Port = 2;
+}
+
+message RTUpdateResponse{
+    int32 Status=1;
+}
+
+message BPRemoveRequest{
+    int32 Port=1;
+}
+
+message BPRemoveResponse{
+    int32 Status = 1;
+}
