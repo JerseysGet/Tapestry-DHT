@@ -9,7 +9,7 @@ import (
 const RADIX = 4
 var DIGIT_SHIFT = bits.TrailingZeros(RADIX)
 var DIGIT_MASK = (1 << DIGIT_SHIFT) - 1;
-const DIGITS = 8 * unsafe.Sizeof(hash_t(0)) / RADIX
+const DIGITS = 8 * unsafe.Sizeof(uint64(0)) / RADIX
 
 func main() {
 	log.Printf("RADIX= %d", RADIX)	
