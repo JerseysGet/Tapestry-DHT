@@ -33,7 +33,7 @@ message BPUpdateRequest {
 }
 
 message BPUpdateResponse {
-    int32 Status = 1;
+    bool Success = 1;
 }
 
 message RTUpdateRequest{
@@ -42,7 +42,7 @@ message RTUpdateRequest{
 }
 
 message RTUpdateResponse{
-    int32 Status=1;
+    bool Success=1;
 }
 
 message BPRemoveRequest{
@@ -50,7 +50,7 @@ message BPRemoveRequest{
 }
 
 message BPRemoveResponse{
-    int32 Status = 1;
+    bool Success = 1;
 }
 
 message RegisterRequest{
