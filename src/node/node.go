@@ -43,15 +43,13 @@ func InitNode(port int, id uint64) *Node {
 	}
 
 	actual_port := lis.Addr().(*net.TCPAddr).Port
-
-	ret := &Node{
-		RT:                *util.NewRoutingTable(),
-		BP:                *util.NewBackPointerTable(),
-		ID:                id,
-		Port:              actual_port,
-		grpcServer:        grpc.NewServer(),
-		Objects:           make(map[uint64]Object),
-		Object_Publishers: make(map[uint64]int),
+	
+	ret := &Node {
+		RT: *util.NewRoutingTable(),
+		BP: *util.NewBackPointerTable(),
+		ID: id,
+		Port: actual_port,
+		grpcServer: grpc.NewServer(),
 		// Initialize Objects and Object_Publishers here
 	}
 
@@ -80,7 +78,6 @@ func startSearchForRoot(port int) {
 		return
 	}
 	fmt.Println("starting search for root using route rpc on port:", port)
-	return
 }
 
 func main() {
