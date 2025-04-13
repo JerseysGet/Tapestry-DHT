@@ -43,6 +43,12 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	if found == 0 {
 		return &pb.RTUpdateResponse{Success: false}, nil
 	}
+
+	if replacementPort == -1 {
+		return &pb.RTUpdateResponse{Success: true}, nil
+	}
+	
+	// update routing table with replacement port
 	found = 0
 
 	for i := 0; i < util.DIGITS; i++ {
@@ -77,4 +83,8 @@ func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpd
 	port := int(req.Port)
 	n.BP.Set[port] = struct{}{} //inserting into set
 	return &pb.BPUpdateResponse{Success: true}, nil
+}
+
+func (n *Node) GetID (ctx context.Context, req *pb.GetIDRequest) (*pb.GetIDResponse, error) {
+	return &pb.GetIDResponse{Id: n.ID}, nil
 }
