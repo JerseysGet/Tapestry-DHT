@@ -11,6 +11,7 @@ service NodeService {
     rpc UnRegister(RegisterRequest) returns (RegisterResponse);
     rpc Lookup(LookupRequest) returns (LookupResponse);
     rpc GetObject(ObjectRequest) returns (ObjectResponse);
+    rpc GetID(GetIDRequest) return (GetIDResponse);
     // Insert is not an RPC, it just calls various RPCs on the bootstrap node
     // rpc CopyRoutingTable ???
     // rpc InformHoleMulticast ???
@@ -80,4 +81,11 @@ message ObjectRequest {
 message ObjectResponse {
     string Name = 1;
     string Content = 2;
+}
+
+message GetIDRequest{}
+
+message GetIDResponse{
+    uint64 ID = 1;
+    bool Success = 2;
 }

@@ -83,6 +83,27 @@ func startSearchForRoot(port int) {
 	fmt.Println("starting search for root using route rpc on port:", port)
 }
 
+func deleteGracefully(n *Node) {
+	var closest_port int
+	found := 0
+	for i:= util.DIGITS-1; i>=0; i-- {
+		id_digit := util.GetDigit(n.ID, i)
+		for j:=0; j<util.RADIX; j++ {
+			if j == id_digit {
+				continue
+			}
+			if n.RT.Table[i][j] != -1 {
+				closest_port = n.RT.Table[i][j]
+				found = 1
+				break
+			}
+		}
+		if found {
+			break
+		}
+	}
+}
+
 func main() {
 
 	// get port for search from user
