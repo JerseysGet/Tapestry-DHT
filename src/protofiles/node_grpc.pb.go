@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NodeService_Route_FullMethodName    = "/NodeService/Route"
-	NodeService_BPUpdate_FullMethodName = "/NodeService/BPUpdate"
-	NodeService_RTUpdate_FullMethodName = "/NodeService/RTUpdate"
-	NodeService_BPRemove_FullMethodName = "/NodeService/BPRemove"
-	NodeService_Register_FullMethodName = "/NodeService/Register"
+	NodeService_Route_FullMethodName      = "/NodeService/Route"
+	NodeService_BPUpdate_FullMethodName   = "/NodeService/BPUpdate"
+	NodeService_RTUpdate_FullMethodName   = "/NodeService/RTUpdate"
+	NodeService_BPRemove_FullMethodName   = "/NodeService/BPRemove"
+	NodeService_Register_FullMethodName   = "/NodeService/Register"
+	NodeService_UnRegister_FullMethodName = "/NodeService/UnRegister"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -35,6 +36,7 @@ type NodeServiceClient interface {
 	RTUpdate(ctx context.Context, in *RTUpdateRequest, opts ...grpc.CallOption) (*RTUpdateResponse, error)
 	BPRemove(ctx context.Context, in *BPRemoveRequest, opts ...grpc.CallOption) (*BPRemoveResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	UnRegister(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -95,6 +97,16 @@ func (c *nodeServiceClient) Register(ctx context.Context, in *RegisterRequest, o
 	return out, nil
 }
 
+func (c *nodeServiceClient) UnRegister(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, NodeService_UnRegister_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type NodeServiceServer interface {
 	RTUpdate(context.Context, *RTUpdateRequest) (*RTUpdateResponse, error)
 	BPRemove(context.Context, *BPRemoveRequest) (*BPRemoveResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	UnRegister(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedNodeServiceServer) BPRemove(context.Context, *BPRemoveRequest
 }
 func (UnimplementedNodeServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedNodeServiceServer) UnRegister(context.Context, *RegisterRequest) (*RegisterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnRegister not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -240,6 +256,24 @@ func _NodeService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_UnRegister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).UnRegister(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_UnRegister_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).UnRegister(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _NodeService_Register_Handler,
+		},
+		{
+			MethodName: "UnRegister",
+			Handler:    _NodeService_UnRegister_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
