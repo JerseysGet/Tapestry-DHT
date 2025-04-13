@@ -23,6 +23,7 @@ type Node struct {
 	Port              int
 	Objects           map[uint64]Object // Object ID -> Object
 	Object_Publishers map[uint64]int    // Object ID -> Publisher_Port
+	grpcServer        *grpc.Server
 }
 
 func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
@@ -34,8 +35,28 @@ func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
 	return conn, pb.NewNodeServiceClient(conn), nil
 }
 
-func savePortToFile(port int) {
+func InitNode(port int, id uint64) *Node {
+	addr := fmt.Sprint(":%d", port)
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Panicf("could not listen on port %d\n", port)
+	}
 
+	actual_port := lis.Addr().(*net.TCPAddr).Port
+	
+	ret := &Node {
+		RT: *util.NewRoutingTable(),
+		BP: *util.NewBackPointerTable(),
+		ID: id,
+		Port: actual_port,
+		grpcServer: grpc.NewServer(),
+		// Initialize Objects and Object_Publishers here
+	}
+
+	return ret
+}
+
+func savePortToFile(port int) {
 	file, err := os.OpenFile("ports.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
