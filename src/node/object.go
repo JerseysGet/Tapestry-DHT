@@ -92,3 +92,73 @@ func (n *Node) UnRegister(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	fmt.Printf("[UNREGISTER] Removed object %s from node %d\n", util.HashToString(objectID), publisherPort)
 	return &pb.RegisterResponse{}, nil
 }
+
+func (n *Node) FindObject(name string) (Object, error) {
+	objectID := util.StringToHash(name)
+	ctx := context.Background()
+	resp, err := n.Route(ctx, &pb.RouteRequest{
+		Id:    objectID,
+		Level: 0,
+	})
+	if err != nil {
+		return Object{}, fmt.Errorf("routing failed: %v", err)
+	}
+	rootPort := int(resp.Port)
+
+	connRoot, clientRoot, err := GetNodeClient(rootPort)
+	if err != nil {
+		return Object{}, fmt.Errorf("failed to connect to root node: %v", err)
+	}
+	defer connRoot.Close()
+	lookupResp, err := clientRoot.Lookup(ctx, &pb.LookupRequest{
+		Object_ID: uint64(objectID),
+	})
+	if err != nil {
+		return Object{}, fmt.Errorf("lookup failed: %v", err)
+	}
+	publisherPort := int(lookupResp.Port)
+
+	connPub, clientPub, err := GetNodeClient(publisherPort)
+	if err != nil {
+		return Object{}, fmt.Errorf("failed to connect to publisher node: %v", err)
+	}
+	defer connPub.Close()
+	objResp, err := clientPub.GetObject(ctx, &pb.ObjectRequest{
+		Object_ID: uint64(objectID),
+	})
+	if err != nil {
+		return Object{}, fmt.Errorf("failed to get object from publisher: %v", err)
+	}
+
+	object := Object{
+		Name:    objResp.Name,
+		Content: objResp.Content,
+	}
+	fmt.Printf("[FIND] Retrieved object '%s' with ID %s from publisher %d\n",
+		object.Name, util.HashToString(objectID), publisherPort)
+
+	return object, nil
+}
+
+func (n *Node) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupResponse, error) {
+	objectID := uint64(req.Object_ID)
+	port, ok := n.Object_Publishers[objectID]
+	if !ok {
+		return nil, fmt.Errorf("object not found in publishers list")
+	}
+	return &pb.LookupResponse{
+		Port: int32(port),
+	}, nil
+}
+
+func (n *Node) GetObject(ctx context.Context, req *pb.ObjectRequest) (*pb.ObjectResponse, error) {
+	objectID := uint64(req.Object_ID)
+	obj, ok := n.Objects[objectID]
+	if !ok {
+		return nil, fmt.Errorf("object not found locally")
+	}
+	return &pb.ObjectResponse{
+		Name:    obj.Name,
+		Content: obj.Content,
+	}, nil
+}

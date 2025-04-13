@@ -25,6 +25,8 @@ const (
 	NodeService_BPRemove_FullMethodName   = "/NodeService/BPRemove"
 	NodeService_Register_FullMethodName   = "/NodeService/Register"
 	NodeService_UnRegister_FullMethodName = "/NodeService/UnRegister"
+	NodeService_Lookup_FullMethodName     = "/NodeService/Lookup"
+	NodeService_GetObject_FullMethodName  = "/NodeService/GetObject"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -37,6 +39,8 @@ type NodeServiceClient interface {
 	BPRemove(ctx context.Context, in *BPRemoveRequest, opts ...grpc.CallOption) (*BPRemoveResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	UnRegister(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Lookup(ctx context.Context, in *LookupRequest, opts ...grpc.CallOption) (*LookupResponse, error)
+	GetObject(ctx context.Context, in *ObjectRequest, opts ...grpc.CallOption) (*ObjectResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -107,6 +111,26 @@ func (c *nodeServiceClient) UnRegister(ctx context.Context, in *RegisterRequest,
 	return out, nil
 }
 
+func (c *nodeServiceClient) Lookup(ctx context.Context, in *LookupRequest, opts ...grpc.CallOption) (*LookupResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LookupResponse)
+	err := c.cc.Invoke(ctx, NodeService_Lookup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) GetObject(ctx context.Context, in *ObjectRequest, opts ...grpc.CallOption) (*ObjectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ObjectResponse)
+	err := c.cc.Invoke(ctx, NodeService_GetObject_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -117,6 +141,8 @@ type NodeServiceServer interface {
 	BPRemove(context.Context, *BPRemoveRequest) (*BPRemoveResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	UnRegister(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Lookup(context.Context, *LookupRequest) (*LookupResponse, error)
+	GetObject(context.Context, *ObjectRequest) (*ObjectResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -144,6 +170,12 @@ func (UnimplementedNodeServiceServer) Register(context.Context, *RegisterRequest
 }
 func (UnimplementedNodeServiceServer) UnRegister(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnRegister not implemented")
+}
+func (UnimplementedNodeServiceServer) Lookup(context.Context, *LookupRequest) (*LookupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Lookup not implemented")
+}
+func (UnimplementedNodeServiceServer) GetObject(context.Context, *ObjectRequest) (*ObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -274,6 +306,42 @@ func _NodeService_UnRegister_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_Lookup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LookupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).Lookup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_Lookup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).Lookup(ctx, req.(*LookupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_GetObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).GetObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_GetObject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).GetObject(ctx, req.(*ObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +372,14 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnRegister",
 			Handler:    _NodeService_UnRegister_Handler,
+		},
+		{
+			MethodName: "Lookup",
+			Handler:    _NodeService_Lookup_Handler,
+		},
+		{
+			MethodName: "GetObject",
+			Handler:    _NodeService_GetObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
