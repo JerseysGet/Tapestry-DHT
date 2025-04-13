@@ -11,8 +11,8 @@ func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteRespon
 	id := req.Id
 	level := int(req.Level)
 
-	util.Assert(0 <= level && level < util.DIGITS, "req.level not in bounds")
-	if level+1 == util.DIGITS {
+	util.Assert(0 <= level && level <= util.DIGITS, "req.level not in bounds")
+	if level == util.DIGITS {
 		return &pb.RouteResponse{Port: int32(n.Port), Id: n.ID}, nil
 	}
 	id_digit := util.GetDigit(id, level)

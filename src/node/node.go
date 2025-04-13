@@ -23,7 +23,8 @@ type Node struct {
 	Port              int
 	Objects           map[uint64]Object // Object ID -> Object
 	Object_Publishers map[uint64]int    // Object ID -> Publisher_Port
-	grpcServer        *grpc.Server
+	GrpcServer        *grpc.Server
+	Listener          net.Listener
 }
 
 func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
@@ -49,12 +50,12 @@ func InitNode(port int, id uint64) *Node {
 		BP:                *util.NewBackPointerTable(),
 		ID:                id,
 		Port:              actual_port,
-		grpcServer:        grpc.NewServer(),
+		GrpcServer:        grpc.NewServer(),
+		Listener:          lis,
 		Objects:           make(map[uint64]Object),
 		Object_Publishers: make(map[uint64]int),
-		// Initialize Objects and Object_Publishers here
 	}
-
+	pb.RegisterNodeServiceServer(ret.GrpcServer, ret)
 	return ret
 }
 
