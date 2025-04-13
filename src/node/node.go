@@ -43,13 +43,15 @@ func InitNode(port int, id uint64) *Node {
 	}
 
 	actual_port := lis.Addr().(*net.TCPAddr).Port
-	
-	ret := &Node {
-		RT: *util.NewRoutingTable(),
-		BP: *util.NewBackPointerTable(),
-		ID: id,
-		Port: actual_port,
-		grpcServer: grpc.NewServer(),
+
+	ret := &Node{
+		RT:                *util.NewRoutingTable(),
+		BP:                *util.NewBackPointerTable(),
+		ID:                id,
+		Port:              actual_port,
+		grpcServer:        grpc.NewServer(),
+		Objects:           make(map[uint64]Object),
+		Object_Publishers: make(map[uint64]int),
 		// Initialize Objects and Object_Publishers here
 	}
 
