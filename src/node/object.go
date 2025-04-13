@@ -81,7 +81,7 @@ func (n *Node) UnPublish(object Object) error {
 	}
 	delete(n.Objects, objectID)
 	fmt.Printf("[UNPUBLISH] Key '%s' with ID %s removed locally\n",
-		key, util.HashToString(objectID), rootPort)
+		key, util.HashToString(objectID))
 	return nil
 }
 

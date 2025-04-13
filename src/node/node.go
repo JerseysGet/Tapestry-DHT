@@ -36,7 +36,7 @@ func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
 }
 
 func InitNode(port int, id uint64) *Node {
-	addr := fmt.Sprint(":%d", port)
+	addr := fmt.Sprintf(":%d", port)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Panicf("could not listen on port %d\n", port)
