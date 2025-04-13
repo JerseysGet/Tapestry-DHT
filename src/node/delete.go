@@ -72,3 +72,10 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	return &pb.RTUpdateResponse{Success: true}, nil
 
 }
+
+func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpdateResponse, error) {
+	// id := req.Id
+	port := int(req.Port)
+	n.BP.Set[port] = struct{}{} //inserting into set
+	return &pb.BPUpdateResponse{Success: true}, nil
+}
