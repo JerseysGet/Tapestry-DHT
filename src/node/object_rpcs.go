@@ -2,7 +2,6 @@ package main
 
 import (
 	pb "Tapestry/protofiles"
-	util "Tapestry/util"
 	"context"
 	"fmt"
 )
@@ -11,7 +10,7 @@ func (n *Node) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Regis
 	publisherPort := int(req.Port)
 	objectID := uint64(req.Object_ID)
 	n.Object_Publishers[objectID] = publisherPort
-	fmt.Printf("[REGISTER] Received object %s from node %d\n", util.HashToString(objectID), publisherPort)
+	fmt.Printf("[REGISTER] Received object %d from node %d\n", objectID, publisherPort)
 	return &pb.RegisterResponse{}, nil
 }
 
@@ -19,7 +18,7 @@ func (n *Node) UnRegister(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	publisherPort := int(req.Port)
 	objectID := uint64(req.Object_ID)
 	delete(n.Object_Publishers, objectID)
-	fmt.Printf("[UNREGISTER] Removed object %s from node %d\n", util.HashToString(objectID), publisherPort)
+	fmt.Printf("[UNREGISTER] Removed object %d from node %d\n", objectID, publisherPort)
 	return &pb.RegisterResponse{}, nil
 }
 

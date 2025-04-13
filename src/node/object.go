@@ -2,7 +2,6 @@ package main
 
 import (
 	pb "Tapestry/protofiles"
-	util "Tapestry/util"
 	"context"
 	"fmt"
 )
@@ -10,7 +9,7 @@ import (
 func (n *Node) Publish(object Object) error {
 	key := object.Name
 	value := object.Content
-	objectID := util.StringToHash(key)
+	objectID := StringToUint64(key)
 
 	conn, rootPort, err := n.ConnectToRoot(objectID)
 	if err != nil {
@@ -31,14 +30,14 @@ func (n *Node) Publish(object Object) error {
 		Content: value,
 	}
 
-	fmt.Printf("[PUBLISH] Key '%s' with ID %s stored locally and published to root %d\n",
-		key, util.HashToString(objectID), rootPort)
+	fmt.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n",
+		key, objectID, rootPort)
 	return nil
 }
 
 func (n *Node) UnPublish(object Object) error {
 	key := object.Name
-	objectID := util.StringToHash(key)
+	objectID := StringToUint64(key)
 
 	conn, _, err := n.ConnectToRoot(objectID)
 	if err != nil {
@@ -55,13 +54,13 @@ func (n *Node) UnPublish(object Object) error {
 	}
 
 	delete(n.Objects, objectID)
-	fmt.Printf("[UNPUBLISH] Key '%s' with ID %s removed locally\n",
-		key, util.HashToString(objectID))
+	fmt.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",
+		key, objectID)
 	return nil
 }
 
 func (n *Node) FindObject(name string) (Object, error) {
-	objectID := util.StringToHash(name)
+	objectID := StringToUint64(name)
 
 	rootConn, _, err := n.ConnectToRoot(objectID)
 	if err != nil {
@@ -96,8 +95,8 @@ func (n *Node) FindObject(name string) (Object, error) {
 		Content: objResp.Content,
 	}
 
-	fmt.Printf("[FIND] Retrieved object '%s' with ID %s from publisher %d\n",
-		object.Name, util.HashToString(objectID), publisherPort)
+	fmt.Printf("[FIND] Retrieved object '%s' with ID %d from publisher %d\n",
+		object.Name, objectID, publisherPort)
 
 	return object, nil
 }

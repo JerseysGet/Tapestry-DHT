@@ -4,6 +4,7 @@ import (
 	pb "Tapestry/protofiles"
 	"context"
 	"fmt"
+	"hash/fnv"
 
 	"google.golang.org/grpc"
 )
@@ -48,4 +49,10 @@ func (n *Node) ConnectToRoot(objectID uint64) (*GRPCConnection, int, error) {
 		return nil, 0, err
 	}
 	return conn, rootPort, nil
+}
+
+func StringToUint64(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
 }
