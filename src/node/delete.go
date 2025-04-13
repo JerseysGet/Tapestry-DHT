@@ -1,9 +1,10 @@
 package main
 
 import (
-	util "Tapestry/util"
 	pb "Tapestry/protofiles"
+	util "Tapestry/util"
 	"context"
+	"log"
 )
 
 func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRemoveResponse, error) {
@@ -19,8 +20,8 @@ func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRem
 	return &pb.BPRemoveResponse{Success: true}, nil
 }
 
-func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpdateResponse, error) {
-	id := req.ID
+func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpdateResponse, error) {
+	// id := req.ID
 	port := int(req.Port)
 
 	replacementID := req.ReplacementID
@@ -42,9 +43,8 @@ func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	if found == 0 {
 		return &pb.RTUpdateResponse{Success: false}, nil
 	}
-	
 
-	for i=0; i < util.DIGITS; i++ {
+	for i := 0; i < util.DIGITS; i++ {
 		id_digit := util.GetDigit(replacementID, i)
 		if n.RT.Table[i][id_digit] == -1 {
 			n.RT.Table[i][id_digit] = replacementPort
@@ -57,14 +57,14 @@ func (n *node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			defer conn.Close()
 
 			// update back pointer
-			resp, err =  to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
+			_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
 			if err != nil {
 				log.Panicf("error in sending BPUpdate: %v", err.Error())
 				return nil, err
 			}
 			return &pb.RTUpdateResponse{Success: true}, nil
 
-		}else{
+		} else {
 			continue
 		}
 	}
