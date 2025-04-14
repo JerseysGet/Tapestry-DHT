@@ -66,7 +66,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		}
 	}
 	n.RT_lock.Unlock()
-	PrintRoutingTable()
+	// PrintRoutingTable()
 	if found == 1 {
 		// connect to update back pointer of replacement node
 		conn, to_client, err := GetNodeClient(replacementPort)

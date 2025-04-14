@@ -28,7 +28,7 @@ type Node struct {
 	GrpcServer        *grpc.Server
 	Listener          net.Listener
 	RT_lock           sync.RWMutex
-	BP_lock		      sync.RWMutex
+	BP_lock           sync.RWMutex
 	Objects_lock      sync.RWMutex
 	Publishers_lock   sync.RWMutex
 }
@@ -198,6 +198,24 @@ func deleteGracefully(n *Node) {
 var Self *Node
 var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
+func RepublishObjects() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			for _, obj := range Self.Objects {
+				err := Self.Publish(obj)
+				if err != nil {
+					fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
+				} else {
+					// fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
+				}
+			}
+		}
+	}
+}
+
 func TakeInput() {
 	var port int
 	var id_str string
@@ -222,29 +240,25 @@ func TakeInput() {
 
 func main() {
 	TakeInput()
-
 	var boot_port int
 	fmt.Print("Enter bootstrap port (0 for empty network): ")
 	fmt.Scan(&boot_port)
 	err := Self.Insert(boot_port)
-	PrintRoutingTable()
+	// PrintRoutingTable()
 	if err != nil {
 		log.Print(err.Error())
 		log.Panic("Could not insert\n")
 	}
-	log.Println("Inserted succesfully")
+	log.Println("Inserted successfully")
+
+	go RepublishObjects()
+
 	for {
-		// [1] Route
-		// [2] Publish
-		// [3] Query
-		// [4] Unpublish
-		// [5] Exit
 		fmt.Println("\nChoose an option:")
-		fmt.Println("[1] Route")
-		fmt.Println("[2] Publish")
-		fmt.Println("[3] Query")
-		fmt.Println("[4] Unpublish")
-		fmt.Println("[5] Exit")
+		fmt.Println("[1] Publish")
+		fmt.Println("[2] Find Object")
+		fmt.Println("[3] Unpublish")
+		fmt.Println("[4] Exit")
 
 		var choice int
 		fmt.Print("Enter choice: ")
@@ -252,40 +266,54 @@ func main() {
 
 		switch choice {
 		case 1:
-			fmt.Println("Routing...")
-		case 2:
-			fmt.Println("Publishing...")
-			// call your Publish logic here
-		case 3:
-			fmt.Println("Querying...")
+			var objectName, objectContent string
+			fmt.Print("Enter object name: ")
+			fmt.Scanf("%s", &objectName) // Read the whole line for object name
 
+			// Consume any extra newline characters in the input buffer
+			// fmt.Scanln() is a safe way to clear the buffer after scanning strings
+
+			fmt.Print("Enter object content: ")
+			fmt.Scanf("%s", &objectContent) // Read the whole line for object content
+
+			obj := Object{
+				Name:    objectName,
+				Content: objectContent,
+			}
+			err := Self.AddObject(obj)
+			if err != nil {
+				fmt.Printf("Error publishing object: %v\n", err)
+			} else {
+				fmt.Println("Object successfully added and published!")
+			}
+		case 2:
+			fmt.Println("Finding Object...")
+			var objectName string
+			fmt.Print("Enter object name: ")
+			fmt.Scanln(&objectName) // Read the whole line for object name
+
+			object, err := Self.FindObject(objectName)
+			if err != nil {
+				fmt.Printf("Error finding object: %v\n", err)
+			} else {
+				fmt.Printf("Object found! Name: %s, Content: %s\n", object.Name, object.Content)
+			}
+		case 3:
+			var objectName string
+			fmt.Print("Enter object name: ")
+			fmt.Scanln(&objectName) // Read the whole line for object name
+
+			err := Self.UnPublish(objectName)
+			if err != nil {
+				fmt.Printf("Error unpublishing object: %v\n", err)
+			} else {
+				fmt.Println("Object successfully unpublished!")
+			}
 		case 4:
-			fmt.Println("Unpublishing...")
-			// call your Unpublish logic here
-		case 5:
 			fmt.Println("Exiting.")
 			return
 		default:
 			fmt.Println("Invalid choice. Try again.")
 		}
-
 	}
-	// goroutine for republishing
-	// go func() {
-	// 	ticker := time.NewTicker(10 * time.Second)
-	// 	defer ticker.Stop()
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			for _, obj := range node.Objects {
-	// 				err := node.Publish(obj)
-	// 				if err != nil {
-	// 					fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
-	// 				} else {
-	// 					fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }()
 }

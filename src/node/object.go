@@ -34,13 +34,11 @@ func (n *Node) Publish(object Object) error {
 	}
 	n.Objects_lock.Unlock()
 
-	fmt.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n",
-		key, objectID, rootPort)
+	fmt.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n", key, objectID, rootPort)
 	return nil
 }
 
-func (n *Node) UnPublish(object Object) error {
-	key := object.Name
+func (n *Node) UnPublish(key string) error {
 	objectID := StringToUint64(key)
 
 	conn, _, err := n.ConnectToRoot(objectID)
@@ -61,8 +59,7 @@ func (n *Node) UnPublish(object Object) error {
 	delete(n.Objects, objectID)
 	n.Objects_lock.Unlock()
 
-	fmt.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",
-		key, objectID)
+	// fmt.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",key, objectID)
 	return nil
 }
 
@@ -102,8 +99,7 @@ func (n *Node) FindObject(name string) (Object, error) {
 		Content: objResp.Content,
 	}
 
-	fmt.Printf("[FIND] Retrieved object '%s' with ID %d from publisher %d\n",
-		object.Name, objectID, publisherPort)
+	// fmt.Printf("[FIND] Retrieved object '%s' with ID %d from publisher %d\n", object.Name, objectID, publisherPort)
 
 	return object, nil
 }
@@ -124,7 +120,7 @@ func (n *Node) AddObject(obj Object) error {
 	n.RT_lock.RUnlock()
 
 	if maxCandidates == 0 {
-		log.Println("[ADD OBJECT] No other valid nodes found to replicate object")
+		// log.Println("[ADD OBJECT] No other valid nodes found to replicate object")
 	} else {
 		added := 0
 		attempts := 0
@@ -167,7 +163,7 @@ func (n *Node) AddObject(obj Object) error {
 		}
 
 		if added < 2 {
-			log.Printf("[ADD OBJECT] Only %d replicas could be added (less than desired 2)", added)
+			// log.Printf("[ADD OBJECT] Only %d replicas could be added (less than desired 2)", added)
 		}
 	}
 

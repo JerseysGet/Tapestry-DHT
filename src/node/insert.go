@@ -41,7 +41,7 @@ func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest
 	n.RT_lock.Lock()
 	n.RT.Table[original_level][digit] = new_port
 	n.RT_lock.Unlock()
-	PrintRoutingTable()
+	// PrintRoutingTable()
 	conn, new_client, err := GetNodeClient(new_port)
 	if err != nil {
 		log.Panicf("error in connecting (temporary panic): %v", err.Error())
@@ -131,6 +131,6 @@ func (n *Node) Insert(BootstrapPort int) error {
 	n.RT_lock.Lock()
 	n.RT.Table = rt_copy
 	n.RT_lock.Unlock()
-	PrintRoutingTable()
+	// PrintRoutingTable()
 	return nil
 }
