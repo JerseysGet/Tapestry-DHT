@@ -14,6 +14,9 @@ service NodeService {
     rpc InformHoleMulticast(MulticastRequest) returns (MulticastResponse);
     rpc RTCopy(Nothing) returns (RTCopyReponse);
     rpc GetID(GetIDRequest) returns (GetIDResponse);
+    rpc AddObject(Object) returns (Ack);
+    rpc StoreObject(Object) returns (Ack);
+    rpc RemoveObject(RemoveObjectRequest) returns (RemoveObjectResponse);
 
     // Insert is not an RPC, it just calls various RPCs on the bootstrap node
     // rpc CopyRoutingTable ???
@@ -110,3 +113,18 @@ message RTCopyReponse {
     int32 Rows = 2;
     int32 Cols = 3;
 }
+
+message Object {
+    string name = 1;
+    string content = 2;
+}
+
+message Ack {
+    bool success = 1;
+}
+
+message RemoveObjectRequest {
+    uint64 Object_ID = 1;
+}
+
+message RemoveObjectResponse {}

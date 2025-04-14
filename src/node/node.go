@@ -22,8 +22,8 @@ type Node struct {
 	BP                util.BackPointerTable
 	ID                uint64
 	Port              int
-	Objects           map[uint64]Object // Object ID -> Object
-	Object_Publishers map[uint64]int    // Object ID -> Publisher_Port
+	Objects           map[uint64]Object           // Object ID -> Object
+	Object_Publishers map[uint64]map[int]struct{} // Object ID -> Set of Publisher_Ports
 	GrpcServer        *grpc.Server
 	Listener          net.Listener
 }
@@ -54,7 +54,7 @@ func InitNode(port int, id uint64) *Node {
 		GrpcServer:        grpc.NewServer(),
 		Listener:          lis,
 		Objects:           make(map[uint64]Object),
-		Object_Publishers: make(map[uint64]int),
+		Object_Publishers: make(map[uint64]map[int]struct{}),
 	}
 	pb.RegisterNodeServiceServer(ret.GrpcServer, ret)
 	return ret
@@ -87,9 +87,9 @@ func startSearchForRoot(port int) {
 func deleteGracefully(n *Node) {
 	var closest_port int
 	found := 0
-	for i:= util.DIGITS-1; i>=0; i-- {
+	for i := util.DIGITS - 1; i >= 0; i-- {
 		id_digit := util.GetDigit(n.ID, i)
-		for j:=0; j<util.RADIX; j++ {
+		for j := 0; j < util.RADIX; j++ {
 			if uint64(j) == id_digit {
 				continue
 			}
@@ -107,11 +107,11 @@ func deleteGracefully(n *Node) {
 	if found == 0 {
 		closest_port = -1
 		closest_ID = 0
-	} else{
+	} else {
 		conn, to_client, err := GetNodeClient(closest_port)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic) for GetID: %v", err.Error())
-		} else{
+		} else {
 			response, err := to_client.GetID(context.Background(), &pb.GetIDRequest{})
 			if err != nil {
 				log.Panicf("error in GetID: %v", err.Error())
@@ -132,7 +132,7 @@ func deleteGracefully(n *Node) {
 		conn, to_client, err := GetNodeClient(key_port)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic) for RTUpdate: %v", err.Error())
-		} else{
+		} else {
 			response, err := to_client.RTUpdate(context.Background(), &pb.RTUpdateRequest{ReplacementID: closest_ID, ReplacementPort: int32(closest_port), ID: n.ID, Port: int32(n.Port)})
 			if err != nil {
 				log.Panicf("error in RTUpdate: %v", err.Error())
@@ -148,13 +148,13 @@ func deleteGracefully(n *Node) {
 
 	// lock here maybe
 	// update back pointer table
-	for _, row := range n.RT.Table{
+	for _, row := range n.RT.Table {
 		for _, val_port := range row {
 			if val_port != n.Port && val_port != -1 {
 				conn, to_client, err := GetNodeClient(val_port)
 				if err != nil {
 					log.Panicf("error in connecting (temporary panic) for BPRemove: %v", err.Error())
-				} else{
+				} else {
 					response, err := to_client.BPRemove(context.Background(), &pb.BPRemoveRequest{Port: int32(n.Port)})
 					if err != nil {
 						log.Panicf("error in BPRemove: %v", err.Error())
@@ -199,7 +199,7 @@ func main() {
 		ID:                nodeID,
 		Port:              new_port,
 		Objects:           make(map[uint64]Object),
-		Object_Publishers: make(map[uint64]int),
+		Object_Publishers: make(map[uint64]map[int]struct{}),
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterNodeServiceServer(grpcServer, node)
