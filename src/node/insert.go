@@ -33,7 +33,7 @@ func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest
 	}
 	// going to do n.RT[level][getdigit(new_id, level)] = new_port
 	// LOCK HERE maybe
-	digit := util.GetDigit(new_id, level)
+	digit := util.GetDigit(new_id, original_level)
 	n.RT.Table[original_level][digit] = new_port
 	conn, new_client, err := GetNodeClient(new_port)
 	if err != nil {
@@ -81,7 +81,7 @@ func (n *Node) Insert(BootstrapPort int) error {
 	rt_copy := util.UnflattenMatrix(root_resp.Data, int(root_resp.Rows), int(root_resp.Cols))
 
 	for level := common_len + 1; level < util.DIGITS; level++ {
-		for d := range util.DIGITS {
+		for d := range util.RADIX {
 			rt_copy[level][d] = -1
 		}
 	}
