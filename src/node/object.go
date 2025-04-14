@@ -4,6 +4,8 @@ import (
 	pb "Tapestry/protofiles"
 	"context"
 	"fmt"
+	"log"
+	"math/rand"
 )
 
 func (n *Node) Publish(object Object) error {
@@ -104,4 +106,75 @@ func (n *Node) FindObject(name string) (Object, error) {
 		object.Name, objectID, publisherPort)
 
 	return object, nil
+}
+
+func (n *Node) AddObject(obj Object) error {
+	seen := make(map[int]struct{})
+	maxCandidates := 0
+
+	n.RT_lock.RLock()
+	for level := 0; level < len(n.RT.Table); level++ {
+		for digit := 0; digit < len(n.RT.Table[level]); digit++ {
+			port := n.RT.Table[level][digit]
+			if port != -1 && port != n.Port {
+				maxCandidates++
+			}
+		}
+	}
+	n.RT_lock.RUnlock()
+
+	if maxCandidates == 0 {
+		log.Println("[ADD OBJECT] No other valid nodes found to replicate object")
+	} else {
+		added := 0
+		attempts := 0
+		for added < 2 && attempts < maxCandidates*2 {
+			attempts++
+
+			n.RT_lock.RLock()
+			level := rand.Intn(len(n.RT.Table))
+			digit := rand.Intn(len(n.RT.Table[level]))
+			port := n.RT.Table[level][digit]
+			n.RT_lock.RUnlock()
+
+			if port == -1 || port == n.Port {
+				continue
+			}
+			if _, exists := seen[port]; exists {
+				continue
+			}
+			seen[port] = struct{}{}
+			added++
+
+			go func(port int) {
+				conn, client, err := GetNodeClient(port)
+				if err != nil {
+					log.Printf("Could not connect to node at port %d: %v", port, err)
+					return
+				}
+				defer conn.Close()
+
+				pbObj := &pb.Object{
+					Name:    obj.Name,
+					Content: obj.Content,
+				}
+
+				_, err = client.StoreObject(context.Background(), pbObj)
+				if err != nil {
+					log.Printf("Error storing object on port %d: %v", port, err)
+				}
+			}(port)
+		}
+
+		if added < 2 {
+			log.Printf("[ADD OBJECT] Only %d replicas could be added (less than desired 2)", added)
+		}
+	}
+
+	objectID := StringToUint64(obj.Name)
+	n.Objects_lock.Lock()
+	n.Objects[objectID] = obj
+	n.Objects_lock.Unlock()
+
+	return nil
 }
