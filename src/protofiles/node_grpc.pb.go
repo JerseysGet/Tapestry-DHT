@@ -29,6 +29,7 @@ const (
 	NodeService_GetObject_FullMethodName           = "/NodeService/GetObject"
 	NodeService_InformHoleMulticast_FullMethodName = "/NodeService/InformHoleMulticast"
 	NodeService_RTCopy_FullMethodName              = "/NodeService/RTCopy"
+	NodeService_GetID_FullMethodName               = "/NodeService/GetID"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -45,6 +46,7 @@ type NodeServiceClient interface {
 	GetObject(ctx context.Context, in *ObjectRequest, opts ...grpc.CallOption) (*ObjectResponse, error)
 	InformHoleMulticast(ctx context.Context, in *MulticastRequest, opts ...grpc.CallOption) (*MulticastResponse, error)
 	RTCopy(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*RTCopyReponse, error)
+	GetID(ctx context.Context, in *GetIDRequest, opts ...grpc.CallOption) (*GetIDResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -155,6 +157,16 @@ func (c *nodeServiceClient) RTCopy(ctx context.Context, in *Nothing, opts ...grp
 	return out, nil
 }
 
+func (c *nodeServiceClient) GetID(ctx context.Context, in *GetIDRequest, opts ...grpc.CallOption) (*GetIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetIDResponse)
+	err := c.cc.Invoke(ctx, NodeService_GetID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -169,6 +181,7 @@ type NodeServiceServer interface {
 	GetObject(context.Context, *ObjectRequest) (*ObjectResponse, error)
 	InformHoleMulticast(context.Context, *MulticastRequest) (*MulticastResponse, error)
 	RTCopy(context.Context, *Nothing) (*RTCopyReponse, error)
+	GetID(context.Context, *GetIDRequest) (*GetIDResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -208,6 +221,9 @@ func (UnimplementedNodeServiceServer) InformHoleMulticast(context.Context, *Mult
 }
 func (UnimplementedNodeServiceServer) RTCopy(context.Context, *Nothing) (*RTCopyReponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RTCopy not implemented")
+}
+func (UnimplementedNodeServiceServer) GetID(context.Context, *GetIDRequest) (*GetIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetID not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -410,6 +426,24 @@ func _NodeService_RTCopy_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_GetID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).GetID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_GetID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).GetID(ctx, req.(*GetIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -456,6 +490,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RTCopy",
 			Handler:    _NodeService_RTCopy_Handler,
+		},
+		{
+			MethodName: "GetID",
+			Handler:    _NodeService_GetID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

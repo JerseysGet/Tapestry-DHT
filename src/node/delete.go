@@ -65,8 +65,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		conn, to_client, err := GetNodeClient(replacementPort)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic): %v", err.Error())
-		}
-		else{
+		} else{
 
 			// update back pointer
 			_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
@@ -90,5 +89,5 @@ func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpd
 }
 
 func (n *Node) GetID (ctx context.Context, req *pb.GetIDRequest) (*pb.GetIDResponse, error) {
-	return &pb.GetIDResponse{Id: n.ID}, nil
+	return &pb.GetIDResponse{ID: n.ID}, nil
 }

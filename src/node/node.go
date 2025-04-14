@@ -2,6 +2,7 @@ package main
 
 import (
 	util "Tapestry/util"
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -89,7 +90,7 @@ func deleteGracefully(n *Node) {
 	for i:= util.DIGITS-1; i>=0; i-- {
 		id_digit := util.GetDigit(n.ID, i)
 		for j:=0; j<util.RADIX; j++ {
-			if j == id_digit {
+			if uint64(j) == id_digit {
 				continue
 			}
 			if n.RT.Table[i][j] != -1 {
@@ -98,7 +99,7 @@ func deleteGracefully(n *Node) {
 				break
 			}
 		}
-		if found {
+		if found == 1 {
 			break
 		}
 	}
@@ -106,13 +107,11 @@ func deleteGracefully(n *Node) {
 	if found == 0 {
 		closest_port = -1
 		closest_ID = 0
-	}
-	else{
+	} else{
 		conn, to_client, err := GetNodeClient(closest_port)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic) for GetID: %v", err.Error())
-		}
-		else{
+		} else{
 			response, err := to_client.GetID(context.Background(), &pb.GetIDRequest{})
 			if err != nil {
 				log.Panicf("error in GetID: %v", err.Error())
@@ -128,8 +127,7 @@ func deleteGracefully(n *Node) {
 		conn, to_client, err := GetNodeClient(key_port)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic) for RTUpdate: %v", err.Error())
-		}
-		else{
+		} else{
 			response, err := to_client.RTUpdate(context.Background(), &pb.RTUpdateRequest{ReplacementID: closest_ID, ReplacementPort: int32(closest_port), ID: n.ID, Port: int32(n.Port)})
 			if err != nil {
 				log.Panicf("error in RTUpdate: %v", err.Error())
@@ -145,30 +143,27 @@ func deleteGracefully(n *Node) {
 
 	// lock here maybe
 	// update back pointer table
-	for i, row := range n.RT.Table{
-		for j, val_port := range row {
+	for _, row := range n.RT.Table{
+		for _, val_port := range row {
 			if val_port != n.Port {
-				conn, to_client, err := GetNodeClient(key_port)
+				conn, to_client, err := GetNodeClient(val_port)
 				if err != nil {
 					log.Panicf("error in connecting (temporary panic) for BPRemove: %v", err.Error())
-				}
-				else{
+				} else{
 					response, err := to_client.BPRemove(context.Background(), &pb.BPRemoveRequest{Port: int32(n.Port)})
 					if err != nil {
 						log.Panicf("error in BPRemove: %v", err.Error())
 					}
 					if response.Success {
-						fmt.Printf("Back pointer table updated successfully for port %d\n", key_port)
+						fmt.Printf("Back pointer table updated successfully for port %d\n", val_port)
 					} else {
-						fmt.Printf("Failed to update Back pointer table for port %d\n", key_port)
+						fmt.Printf("Failed to update Back pointer table for port %d\n", val_port)
 					}
 					conn.Close()
 				}
 			}
 		}
 	}
-
-	return
 }
 
 func main() {
