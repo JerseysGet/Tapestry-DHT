@@ -25,10 +25,12 @@ func (n *Node) Publish(object Object) error {
 		return fmt.Errorf("failed to register with root: %v", err)
 	}
 
+	n.Objects_lock.Lock()
 	n.Objects[objectID] = Object{
 		Name:    key,
 		Content: value,
 	}
+	n.Objects_lock.Unlock()
 
 	fmt.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n",
 		key, objectID, rootPort)
@@ -53,7 +55,10 @@ func (n *Node) UnPublish(object Object) error {
 		return fmt.Errorf("failed to unregister with root: %v", err)
 	}
 
+	n.Objects_lock.Lock()
 	delete(n.Objects, objectID)
+	n.Objects_lock.Unlock()
+
 	fmt.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",
 		key, objectID)
 	return nil
