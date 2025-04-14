@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 )
 
 func (n *Node) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -104,41 +103,6 @@ func (n *Node) GetObject(ctx context.Context, req *pb.ObjectRequest) (*pb.Object
 		Name:    obj.Name,
 		Content: obj.Content,
 	}, nil
-}
-
-func (n *Node) AddObject(ctx context.Context, obj *pb.Object) (*pb.Ack, error) {
-	added := 0
-	seen := make(map[int]struct{})
-
-	for added < 2 {
-		n.RT_lock.RLock()
-		level := rand.Intn(len(n.RT.Table))
-		digit := rand.Intn(len(n.RT.Table[level]))
-		port := n.RT.Table[level][digit]
-		n.RT_lock.RUnlock()
-
-		if port == -1 || port == n.Port {
-			continue
-		}
-		if _, exists := seen[port]; exists {
-			continue
-		}
-		seen[port] = struct{}{}
-		added++
-		go func(port int) {
-			conn, client, err := GetNodeClient(port)
-			if err != nil {
-				log.Printf("Could not connect to node at port %d: %v", port, err)
-				return
-			}
-			defer conn.Close()
-			_, err = client.StoreObject(context.Background(), obj)
-			if err != nil {
-				log.Printf("Error storing object on port %d: %v", port, err)
-			}
-		}(port)
-	}
-	return &pb.Ack{Success: true}, nil
 }
 
 func (n *Node) StoreObject(ctx context.Context, obj *pb.Object) (*pb.Ack, error) {

@@ -14,7 +14,6 @@ service NodeService {
     rpc InformHoleMulticast(MulticastRequest) returns (MulticastResponse);
     rpc RTCopy(Nothing) returns (RTCopyReponse);
     rpc GetID(GetIDRequest) returns (GetIDResponse);
-    rpc AddObject(Object) returns (Ack);
     rpc StoreObject(Object) returns (Ack);
     rpc RemoveObject(RemoveObjectRequest) returns (RemoveObjectResponse);
 

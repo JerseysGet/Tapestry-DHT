@@ -30,7 +30,6 @@ const (
 	NodeService_InformHoleMulticast_FullMethodName = "/NodeService/InformHoleMulticast"
 	NodeService_RTCopy_FullMethodName              = "/NodeService/RTCopy"
 	NodeService_GetID_FullMethodName               = "/NodeService/GetID"
-	NodeService_AddObject_FullMethodName           = "/NodeService/AddObject"
 	NodeService_StoreObject_FullMethodName         = "/NodeService/StoreObject"
 	NodeService_RemoveObject_FullMethodName        = "/NodeService/RemoveObject"
 )
@@ -50,7 +49,6 @@ type NodeServiceClient interface {
 	InformHoleMulticast(ctx context.Context, in *MulticastRequest, opts ...grpc.CallOption) (*MulticastResponse, error)
 	RTCopy(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*RTCopyReponse, error)
 	GetID(ctx context.Context, in *GetIDRequest, opts ...grpc.CallOption) (*GetIDResponse, error)
-	AddObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*Ack, error)
 	StoreObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*Ack, error)
 	RemoveObject(ctx context.Context, in *RemoveObjectRequest, opts ...grpc.CallOption) (*RemoveObjectResponse, error)
 }
@@ -173,16 +171,6 @@ func (c *nodeServiceClient) GetID(ctx context.Context, in *GetIDRequest, opts ..
 	return out, nil
 }
 
-func (c *nodeServiceClient) AddObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*Ack, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Ack)
-	err := c.cc.Invoke(ctx, NodeService_AddObject_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *nodeServiceClient) StoreObject(ctx context.Context, in *Object, opts ...grpc.CallOption) (*Ack, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Ack)
@@ -218,7 +206,6 @@ type NodeServiceServer interface {
 	InformHoleMulticast(context.Context, *MulticastRequest) (*MulticastResponse, error)
 	RTCopy(context.Context, *Nothing) (*RTCopyReponse, error)
 	GetID(context.Context, *GetIDRequest) (*GetIDResponse, error)
-	AddObject(context.Context, *Object) (*Ack, error)
 	StoreObject(context.Context, *Object) (*Ack, error)
 	RemoveObject(context.Context, *RemoveObjectRequest) (*RemoveObjectResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
@@ -263,9 +250,6 @@ func (UnimplementedNodeServiceServer) RTCopy(context.Context, *Nothing) (*RTCopy
 }
 func (UnimplementedNodeServiceServer) GetID(context.Context, *GetIDRequest) (*GetIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetID not implemented")
-}
-func (UnimplementedNodeServiceServer) AddObject(context.Context, *Object) (*Ack, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddObject not implemented")
 }
 func (UnimplementedNodeServiceServer) StoreObject(context.Context, *Object) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreObject not implemented")
@@ -492,24 +476,6 @@ func _NodeService_GetID_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeService_AddObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Object)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NodeServiceServer).AddObject(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: NodeService_AddObject_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServiceServer).AddObject(ctx, req.(*Object))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _NodeService_StoreObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Object)
 	if err := dec(in); err != nil {
@@ -596,10 +562,6 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetID",
 			Handler:    _NodeService_GetID_Handler,
-		},
-		{
-			MethodName: "AddObject",
-			Handler:    _NodeService_AddObject_Handler,
 		},
 		{
 			MethodName: "StoreObject",
