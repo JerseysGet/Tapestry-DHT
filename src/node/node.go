@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	pb "Tapestry/protofiles"
@@ -26,6 +27,9 @@ type Node struct {
 	Object_Publishers map[uint64]map[int]struct{} // Object ID -> Set of Publisher_Ports
 	GrpcServer        *grpc.Server
 	Listener          net.Listener
+	RT_lock           sync.RWMutex
+	Objects_lock      sync.RWMutex
+	Publishers_lock   sync.RWMutex
 }
 
 func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
