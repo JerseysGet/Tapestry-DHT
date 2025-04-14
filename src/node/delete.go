@@ -14,6 +14,7 @@ func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRem
 	if _, exists := n.BP.Set[port]; exists {
 		delete(n.BP.Set, port)
 	} else {
+		log.Printf("Port %d not found in back pointer set", port)
 		return &pb.BPRemoveResponse{Success: false}, nil
 	}
 
@@ -48,7 +49,8 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	// update routing table with replacement port
 	found = 0
 	// lock here maybe
-	for i := 0; i < util.DIGITS; i++ {
+	common_prefix_len := util.CommonPrefixLen(n.ID, replacementID)
+	for i := 0; i <= common_prefix_len && i < util.DIGITS; i++ {
 		id_digit := util.GetDigit(replacementID, i)
 		if n.RT.Table[i][id_digit] == -1 {
 			found = 1
@@ -70,6 +72,8 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			}
 			conn.Close()
 		}
+	} else{
+		log.Printf("No empty slot found in routing table for replacement port %d in node %d\n", replacementPort, n.Port)
 	}
 
 	return &pb.RTUpdateResponse{Success: true}, nil
@@ -80,6 +84,7 @@ func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpd
 	// id := req.Id
 	port := int(req.Port)
 	// lock here maybe
+	log.Println("Inserting into back pointer set", port, n.Port)
 	n.BP.Set[port] = struct{}{} //inserting into set
 	return &pb.BPUpdateResponse{Success: true}, nil
 }

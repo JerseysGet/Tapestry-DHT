@@ -121,9 +121,14 @@ func deleteGracefully(n *Node) {
 		}
 	}
 
+	fmt.Printf("closest port found: %d\n", closest_port)
+	fmt.Printf("closest ID found: %d\n", util.HashToString(closest_ID))
 	// lock here maybe
 	// update routing table
 	for key_port, _ := range n.BP.Set {
+		if key_port == n.Port {
+			continue
+		}
 		conn, to_client, err := GetNodeClient(key_port)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic) for RTUpdate: %v", err.Error())
@@ -145,7 +150,7 @@ func deleteGracefully(n *Node) {
 	// update back pointer table
 	for _, row := range n.RT.Table{
 		for _, val_port := range row {
-			if val_port != n.Port {
+			if val_port != n.Port && val_port != -1 {
 				conn, to_client, err := GetNodeClient(val_port)
 				if err != nil {
 					log.Panicf("error in connecting (temporary panic) for BPRemove: %v", err.Error())
@@ -157,7 +162,7 @@ func deleteGracefully(n *Node) {
 					if response.Success {
 						fmt.Printf("Back pointer table updated successfully for port %d\n", val_port)
 					} else {
-						fmt.Printf("Failed to update Back pointer table for port %d\n", val_port)
+						fmt.Printf("Failed to remove from Back pointer table for port %d\n", val_port)
 					}
 					conn.Close()
 				}
