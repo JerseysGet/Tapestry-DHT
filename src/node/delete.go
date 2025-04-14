@@ -11,8 +11,13 @@ func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRem
 
 	port := int(req.Port)
 	// lock here maybe
-	if _, exists := n.BP.Set[port]; exists {
+	n.BP_lock.RLock()
+	_, exists := n.BP.Set[port]
+	n.BP_lock.RUnlock()
+	if exists {
+		n.BP_lock.Lock()
 		delete(n.BP.Set, port)
+		n.BP_lock.Unlock()
 	} else {
 		log.Printf("Port %d not found in back pointer set", port)
 		return &pb.BPRemoveResponse{Success: false}, nil
@@ -29,6 +34,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	replacementPort := int(req.ReplacementPort)
 	// lock here maybe
 	var found int = 0
+	n.RT_lock.Lock()
 	for i, row := range n.RT.Table {
 		for j, val := range row {
 			if val == port {
@@ -39,13 +45,15 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	}
 
 	if found == 0 {
+		n.RT_lock.Unlock()
 		return &pb.RTUpdateResponse{Success: false}, nil
 	}
 
 	if replacementPort == -1 {
+		n.RT_lock.Unlock()
 		return &pb.RTUpdateResponse{Success: true}, nil
 	}
-	
+
 	// update routing table with replacement port
 	found = 0
 	// lock here maybe
@@ -57,13 +65,14 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			n.RT.Table[i][id_digit] = replacementPort
 		}
 	}
-
+	n.RT_lock.Unlock()
+	PrintRoutingTable()
 	if found == 1 {
 		// connect to update back pointer of replacement node
 		conn, to_client, err := GetNodeClient(replacementPort)
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic): %v", err.Error())
-		} else{
+		} else {
 
 			// update back pointer
 			_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
@@ -72,7 +81,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			}
 			conn.Close()
 		}
-	} else{
+	} else {
 		log.Printf("No empty slot found in routing table for replacement port %d in node %d\n", replacementPort, n.Port)
 	}
 
@@ -85,10 +94,12 @@ func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpd
 	port := int(req.Port)
 	// lock here maybe
 	log.Println("Inserting into back pointer set", port, n.Port)
+	n.BP_lock.Lock()
 	n.BP.Set[port] = struct{}{} //inserting into set
+	n.BP_lock.Unlock()
 	return &pb.BPUpdateResponse{Success: true}, nil
 }
 
-func (n *Node) GetID (ctx context.Context, req *pb.GetIDRequest) (*pb.GetIDResponse, error) {
+func (n *Node) GetID(ctx context.Context, req *pb.GetIDRequest) (*pb.GetIDResponse, error) {
 	return &pb.GetIDResponse{ID: n.ID}, nil
 }

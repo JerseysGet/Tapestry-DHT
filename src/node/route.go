@@ -17,6 +17,7 @@ func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteRespon
 	}
 	id_digit := util.GetDigit(id, level)
 	for d, ct := id_digit, 0; ct < util.RADIX; ct++ {
+		// dont LOCK here only reading ?
 		to_port := n.RT.Table[level][d]
 		if to_port == -1 {
 			d = (d + 1) % util.RADIX

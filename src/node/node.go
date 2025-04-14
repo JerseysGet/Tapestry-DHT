@@ -28,6 +28,7 @@ type Node struct {
 	GrpcServer        *grpc.Server
 	Listener          net.Listener
 	RT_lock           sync.RWMutex
+	BP_lock		      sync.RWMutex
 	Objects_lock      sync.RWMutex
 	Publishers_lock   sync.RWMutex
 }
@@ -62,6 +63,25 @@ func InitNode(port int, id uint64) *Node {
 	}
 	pb.RegisterNodeServiceServer(ret.GrpcServer, ret)
 	return ret
+}
+
+func PrintRoutingTable() {
+	fmt.Printf("ID= %d (%s)\n", Self.ID, util.HashToString(Self.ID))
+	for level := 0; level < util.DIGITS; level++ {
+		fmt.Printf("  Level %d: ", level)
+		for digit := 0; digit < util.RADIX; digit++ {
+			if Self.RT.Table[level][digit] != -1 {
+				fmt.Printf("%d ", Self.RT.Table[level][digit])
+			} else {
+				fmt.Print(". ")
+			}
+		}
+		fmt.Println()
+	}
+	for port := range Self.BP.Set {
+		fmt.Printf("%d ", port)
+	}
+	fmt.Println()
 }
 
 func savePortToFile(port int) {
@@ -126,7 +146,7 @@ func deleteGracefully(n *Node) {
 	}
 
 	fmt.Printf("closest port found: %d\n", closest_port)
-	fmt.Printf("closest ID found: %d\n", util.HashToString(closest_ID))
+	fmt.Printf("closest ID found: %s\n", util.HashToString(closest_ID))
 	// lock here maybe
 	// update routing table
 	for key_port, _ := range n.BP.Set {
@@ -175,59 +195,97 @@ func deleteGracefully(n *Node) {
 	}
 }
 
-func main() {
+var Self *Node
+var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	// get port for search from user
+func TakeInput() {
 	var port int
-	fmt.Print("Enter port to start search: ")
+	var id_str string
+	fmt.Print("Enter port (0 for random): ")
 	fmt.Scan(&port)
-
-	// find a free port
-	listener, err := net.Listen("tcp", "localhost:0")
-	if err != nil {
-		log.Fatalf("Failed to find a free port: %v", err)
+	fmt.Print("Enter ID (0 for random): ")
+	fmt.Scan(&id_str)
+	var id uint64
+	if id_str == "0" {
+		id = rng.Uint64()
+	} else {
+		id = util.StringToHash(util.PadLeft32((id_str)))
 	}
-	new_port := listener.Addr().(*net.TCPAddr).Port
-	fmt.Println("Server is live on port:", new_port)
-	startSearchForRoot(port)
-	savePortToFile(new_port)
-
-	// register node server and start listening
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	nodeID := rng.Uint64()
-	var rt util.RoutingTable
-	var bp util.BackPointerTable
-	node := &Node{
-		RT:                rt,
-		BP:                bp,
-		ID:                nodeID,
-		Port:              new_port,
-		Objects:           make(map[uint64]Object),
-		Object_Publishers: make(map[uint64]map[int]struct{}),
-	}
-	grpcServer := grpc.NewServer()
-	pb.RegisterNodeServiceServer(grpcServer, node)
-
-	// goroutine for republishing
+	Self = InitNode(port, id)
+	fmt.Printf("Port=%d, ID=%s\n", Self.Port, util.HashToString(Self.ID))
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				for _, obj := range node.Objects {
-					err := node.Publish(obj)
-					if err != nil {
-						fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
-					} else {
-						fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
-					}
-				}
-			}
+		if err := Self.GrpcServer.Serve(Self.Listener); err != nil {
+			log.Panic("could not serve\n")
 		}
 	}()
+}
 
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+func main() {
+	TakeInput()
+
+	var boot_port int
+	fmt.Print("Enter bootstrap port (0 for empty network): ")
+	fmt.Scan(&boot_port)
+	err := Self.Insert(boot_port)
+	PrintRoutingTable()
+	if err != nil {
+		log.Print(err.Error())
+		log.Panic("Could not insert\n")
 	}
+	log.Println("Inserted succesfully")
+	for {
+		// [1] Route
+		// [2] Publish
+		// [3] Query
+		// [4] Unpublish
+		// [5] Exit
+		fmt.Println("\nChoose an option:")
+		fmt.Println("[1] Route")
+		fmt.Println("[2] Publish")
+		fmt.Println("[3] Query")
+		fmt.Println("[4] Unpublish")
+		fmt.Println("[5] Exit")
+
+		var choice int
+		fmt.Print("Enter choice: ")
+		fmt.Scan(&choice)
+
+		switch choice {
+		case 1:
+			fmt.Println("Routing...")
+		case 2:
+			fmt.Println("Publishing...")
+			// call your Publish logic here
+		case 3:
+			fmt.Println("Querying...")
+
+		case 4:
+			fmt.Println("Unpublishing...")
+			// call your Unpublish logic here
+		case 5:
+			fmt.Println("Exiting.")
+			return
+		default:
+			fmt.Println("Invalid choice. Try again.")
+		}
+
+	}
+	// goroutine for republishing
+	// go func() {
+	// 	ticker := time.NewTicker(10 * time.Second)
+	// 	defer ticker.Stop()
+	// 	for {
+	// 		select {
+	// 		case <-ticker.C:
+	// 			for _, obj := range node.Objects {
+	// 				err := node.Publish(obj)
+	// 				if err != nil {
+	// 					fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
+	// 				} else {
+	// 					fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }()
 }

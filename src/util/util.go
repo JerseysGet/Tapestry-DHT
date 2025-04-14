@@ -3,6 +3,7 @@ package util
 import (
 	"log"
 	"math/bits"
+	"strings"
 	"unsafe"
 )
 
@@ -108,6 +109,15 @@ func UnflattenMatrix(flat []int32, rows, cols int) [][]int {
 		matrix[i] = row
 	}
 	return matrix
+}
+
+func PadLeft32(s string) string {
+	Assert(0 <= len(s) && len(s) <= 32, "string length out of bounds")
+	if len(s) == 32 {
+		return s
+	}
+	padding := strings.Repeat("0", 32-len(s))
+	return padding + s
 }
 
 // func main() {
