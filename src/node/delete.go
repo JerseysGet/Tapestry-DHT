@@ -33,10 +33,6 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 			if val == port {
 				n.RT.Table[i][j] = -1
 				found = 1
-				break
-			}
-			if found == 1 {
-				break
 			}
 		}
 	}
