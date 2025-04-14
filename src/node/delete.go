@@ -18,6 +18,7 @@ func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRem
 		n.BP_lock.Lock()
 		delete(n.BP.Set, port)
 		n.BP_lock.Unlock()
+		PrintRoutingTable()
 	} else {
 		log.Printf("Port %d not found in back pointer set", port)
 		return &pb.BPRemoveResponse{Success: false}, nil
@@ -66,7 +67,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		}
 	}
 	n.RT_lock.Unlock()
-	// PrintRoutingTable()
+	PrintRoutingTable()
 	if found == 1 {
 		// connect to update back pointer of replacement node
 		conn, to_client, err := GetNodeClient(replacementPort)

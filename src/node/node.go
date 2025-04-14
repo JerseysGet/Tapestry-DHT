@@ -78,6 +78,7 @@ func PrintRoutingTable() {
 		}
 		fmt.Println()
 	}
+	fmt.Printf("Back Pointer Table for port: %d ID:%s\n", Self.Port, util.HashToString(Self.ID))
 	for port := range Self.BP.Set {
 		fmt.Printf("%d ", port)
 	}
@@ -311,6 +312,10 @@ func main() {
 			}
 		case 4:
 			fmt.Println("Exiting.")
+			deleteGracefully(Self)
+			time.Sleep(500 * time.Millisecond)
+			Self.GrpcServer.GracefulStop()
+			fmt.Println("gRPC server stopped.")
 			return
 		default:
 			fmt.Println("Invalid choice. Try again.")
