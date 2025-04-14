@@ -10,7 +10,7 @@ import (
 func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRemoveResponse, error) {
 
 	port := int(req.Port)
-
+	// lock here maybe
 	if _, exists := n.BP.Set[port]; exists {
 		delete(n.BP.Set, port)
 	} else {
@@ -26,6 +26,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 
 	replacementID := req.ReplacementID
 	replacementPort := int(req.ReplacementPort)
+	// lock here maybe
 	var found int = 0
 	for i, row := range n.RT.Table {
 		for j, val := range row {
@@ -50,7 +51,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 	
 	// update routing table with replacement port
 	found = 0
-
+	// lock here maybe
 	for i := 0; i < util.DIGITS; i++ {
 		id_digit := util.GetDigit(replacementID, i)
 		if n.RT.Table[i][id_digit] == -1 {
@@ -65,12 +66,14 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		if err != nil {
 			log.Panicf("error in connecting (temporary panic): %v", err.Error())
 		}
-		defer conn.Close()
+		else{
 
-		// update back pointer
-		_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
-		if err != nil {
-			log.Panicf("error in sending BPUpdate: %v", err.Error())
+			// update back pointer
+			_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
+			if err != nil {
+				log.Panicf("error in sending BPUpdate: %v", err.Error())
+			}
+			conn.Close()
 		}
 	}
 
@@ -81,6 +84,7 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpdateResponse, error) {
 	// id := req.Id
 	port := int(req.Port)
+	// lock here maybe
 	n.BP.Set[port] = struct{}{} //inserting into set
 	return &pb.BPUpdateResponse{Success: true}, nil
 }
