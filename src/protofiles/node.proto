@@ -11,7 +11,10 @@ service NodeService {
     rpc UnRegister(RegisterRequest) returns (RegisterResponse);
     rpc Lookup(LookupRequest) returns (LookupResponse);
     rpc GetObject(ObjectRequest) returns (ObjectResponse);
+    rpc InformHoleMulticast(MulticastRequest) returns (MulticastResponse);
+    rpc RTCopy(Nothing) returns (RTCopyReponse);
     rpc GetID(GetIDRequest) return (GetIDResponse);
+
     // Insert is not an RPC, it just calls various RPCs on the bootstrap node
     // rpc CopyRoutingTable ???
     // rpc InformHoleMulticast ???
@@ -82,10 +85,28 @@ message ObjectResponse {
     string Name = 1;
     string Content = 2;
 }
-
 message GetIDRequest{}
 
 message GetIDResponse{
     uint64 ID = 1;
     bool Success = 2;
+}
+
+message MulticastRequest {
+    int32 NewPort = 1;
+    uint64 NewID = 2;
+    int32 OriginalLevel = 3;
+    int32 Level = 4;
+}
+
+message MulticastResponse {
+    int32 Status = 1;
+}
+
+message Nothing {}
+
+message RTCopyReponse {
+    repeated int32 Data = 1; // flattened RT 
+    int32 Rows = 2;
+    int32 Cols = 3;
 }

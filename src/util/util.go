@@ -85,6 +85,31 @@ func Assert(condition bool, msg string) {
 	}
 }
 
+func FlattenMatrix(matrix [][]int) []int32 {
+	var flat []int32
+	for _, row := range matrix {
+		for _, val := range row {
+			flat = append(flat, int32(val))
+		}
+	}
+	return flat
+}
+
+func UnflattenMatrix(flat []int32, rows, cols int) [][]int {
+	Assert(len(flat) == rows*cols, "data length does not match rows * cols")
+
+	matrix := make([][]int, rows)
+	for i := range rows {
+		start := i * cols
+		row := make([]int, cols)
+		for j := range cols {
+			row[j] = int(flat[start+j])
+		}
+		matrix[i] = row
+	}
+	return matrix
+}
+
 // func main() {
 // 	log.Printf("RADIX= %d", RADIX)
 // 	log.Printf("DIGIT_SHIFT= %d", DIGIT_SHIFT)
