@@ -128,6 +128,7 @@ func deleteGracefully(n *Node) {
 	var closest_port int
 	var closest_ID uint64
 	found := 0
+	n.RT_lock.Lock()
 	for i := util.DIGITS - 1; i >= 0; i-- {
 		id_digit := util.GetDigit(n.ID, i)
 		for j := 0; j < util.RADIX; j++ {
@@ -165,11 +166,13 @@ func deleteGracefully(n *Node) {
 		closest_port = -1
 		closest_ID = 0
 	} 
+	n.RT_lock.Unlock()
 
 	fmt.Printf("closest port found: %d\n", closest_port)
 	fmt.Printf("closest ID found: %s\n", util.HashToString(closest_ID))
 	// lock here maybe
 	// update routing table
+	n.BP_lock.Lock()
 	for key_port, _ := range n.BP.Set {
 		if key_port == n.Port {
 			continue
@@ -194,8 +197,11 @@ func deleteGracefully(n *Node) {
 		}
 	}
 
+	n.BP_lock.Unlock()
+
 	// lock here maybe
 	// update back pointer table
+	n.RT_lock.Lock()
 	for _, row := range n.RT.Table {
 		for _, val_port := range row {
 			if val_port != n.Port && val_port != -1 {
@@ -220,6 +226,7 @@ func deleteGracefully(n *Node) {
 			}
 		}
 	}
+	n.RT_lock.Unlock()
 }
 
 var Self *Node
