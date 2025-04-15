@@ -100,28 +100,6 @@ func PrintRoutingTable() {
 	fmt.Println()
 }
 
-func savePortToFile(port int) {
-	file, err := os.OpenFile("ports.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	defer file.Close()
-
-	if _, err := file.WriteString(fmt.Sprintf("%d\n", port)); err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
-	}
-}
-
-func startSearchForRoot(port int) {
-	if port == -1 {
-		fmt.Println("No root needed")
-		return
-	}
-	fmt.Println("starting search for root using route rpc on port:", port)
-}
-
 func deleteGracefully(n *Node) {
 	var closest_port int
 	var closest_ID uint64
@@ -166,8 +144,8 @@ func deleteGracefully(n *Node) {
 	}
 	n.RT_lock.Unlock()
 
-	fmt.Printf("closest port found: %d\n", closest_port)
-	fmt.Printf("closest ID found: %s\n", util.HashToString(closest_ID))
+	fmt.Printf("Closest port found: %d\n", closest_port)
+	fmt.Printf("Closest ID found: %s\n", util.HashToString(closest_ID))
 	n.BP_lock.Lock()
 	for key_port, _ := range n.BP.Set {
 		if key_port == n.Port {
@@ -226,7 +204,7 @@ var Self *Node
 var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func RepublishObjects() {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
@@ -234,9 +212,9 @@ func RepublishObjects() {
 			for _, obj := range Self.Objects {
 				err := Self.Publish(obj)
 				if err != nil {
-					fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
+					log.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
 				} else {
-					fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
+					log.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
 				}
 			}
 		}

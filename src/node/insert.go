@@ -4,7 +4,7 @@ import (
 	pb "Tapestry/protofiles"
 	util "Tapestry/util"
 	"context"
-	"fmt"
+	"log"
 )
 
 func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest) (*pb.MulticastResponse, error) {
@@ -79,7 +79,7 @@ func (n *Node) Insert(BootstrapPort int) error {
 	}
 	conn, boot_client, err := GetNodeClient(BootstrapPort)
 	if err != nil {
-		fmt.Print(err.Error())
+		log.Print(err.Error())
 		return err
 	}
 

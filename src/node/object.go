@@ -33,7 +33,7 @@ func (n *Node) Publish(object Object) error {
 	}
 	n.Objects_lock.Unlock()
 
-	fmt.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n", key, objectID, rootPort)
+	log.Printf("[PUBLISH] Key '%s' with ID %d stored locally and published to root %d\n", key, objectID, rootPort)
 	return nil
 }
 
@@ -58,7 +58,7 @@ func (n *Node) UnPublish(key string) error {
 	delete(n.Objects, objectID)
 	n.Objects_lock.Unlock()
 
-	// fmt.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",key, objectID)
+	log.Printf("[UNPUBLISH] Key '%s' with ID %d removed locally\n",key, objectID)
 	return nil
 }
 

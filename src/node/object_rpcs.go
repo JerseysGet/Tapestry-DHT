@@ -20,7 +20,7 @@ func (n *Node) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Regis
 	}
 	n.Object_Publishers[objectID][publisherPort] = struct{}{}
 
-	// fmt.Printf("[REGISTER] Received object %d from node %d\n", objectID, publisherPort)
+	log.Printf("[REGISTER] Received object %d from node %d\n", objectID, publisherPort)
 	return &pb.RegisterResponse{}, nil
 }
 
@@ -47,14 +47,14 @@ func (n *Node) UnRegister(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 			if err != nil && !strings.Contains(err.Error(), "Unavailable") {
 				log.Printf("RemoveObject failed on node %d: %v", port, err)
 			} else {
-				// fmt.Printf("[UNREGISTER] Informed node %d to remove object %d\n", port, objectID)
+				log.Printf("[UNREGISTER] Informed node %d to remove object %d\n", port, objectID)
 			}
 		}
 		delete(n.Object_Publishers, objectID)
 	}
 	n.Publishers_lock.Unlock()
 
-	// fmt.Printf("[UNREGISTER] Removed object %d from node %d\n", objectID, publisherPort)
+	log.Printf("[UNREGISTER] Removed object %d from node %d\n", objectID, publisherPort)
 	return &pb.RegisterResponse{}, nil
 }
 
@@ -65,7 +65,7 @@ func (n *Node) RemoveObject(ctx context.Context, req *pb.RemoveObjectRequest) (*
 	delete(n.Objects, objectID)
 	n.Objects_lock.Unlock()
 
-	// fmt.Printf("[REMOVE OBJECT] Object %d removed from node %d\n", objectID, n.Port)
+	log.Printf("[REMOVE OBJECT] Object %d removed from node %d\n", objectID, n.Port)
 	return &pb.RemoveObjectResponse{}, nil
 }
 
@@ -83,16 +83,13 @@ func (n *Node) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupRes
 	for port := range portSet {
 		conn, _, err := GetNodeClient(port)
 		if err != nil {
-			// Node is likely dead — remove it
 			delete(portSet, port)
 			continue
 		}
 		conn.Close()
-		// Found an alive node
 		return &pb.LookupResponse{Port: int32(port)}, nil
 	}
 
-	// No live nodes found
 	delete(n.Object_Publishers, objectID)
 	return &pb.LookupResponse{Port: -1}, nil
 }

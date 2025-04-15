@@ -18,7 +18,7 @@ func (n *Node) BPRemove(ctx context.Context, req *pb.BPRemoveRequest) (*pb.BPRem
 		n.BP_lock.Lock()
 		delete(n.BP.Set, port)
 		n.BP_lock.Unlock()
-		PrintRoutingTable()
+		// PrintRoutingTable()
 	} else {
 		log.Printf("Port %d not found in back pointer set", port)
 		return &pb.BPRemoveResponse{Success: false}, nil
@@ -67,12 +67,12 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		}
 	}
 	n.RT_lock.Unlock()
-	PrintRoutingTable()
+	// PrintRoutingTable()
 	if found == 1 {
 		// connect to update back pointer of replacement node
 		conn, to_client, err := GetNodeClient(replacementPort)
 		if err != nil {
-			log.Printf("error in port: %d while connecting to send Back-Pointer update to port : %d, err: %v",n.Port, replacementPort, err.Error())
+			log.Printf("error in port: %d while connecting to send Back-Pointer update to port : %d, err: %v", n.Port, replacementPort, err.Error())
 			return &pb.RTUpdateResponse{Success: false}, nil
 		} else {
 
@@ -97,7 +97,7 @@ func (n *Node) BPUpdate(ctx context.Context, req *pb.BPUpdateRequest) (*pb.BPUpd
 	// id := req.Id
 	port := int(req.Port)
 	// lock here maybe
-	log.Println("Inserting into back pointer set", port, n.Port)
+	// log.Println("Inserting into back pointer set", port, n.Port)
 	n.BP_lock.Lock()
 	n.BP.Set[port] = struct{}{} //inserting into set
 	n.BP_lock.Unlock()

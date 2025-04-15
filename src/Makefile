@@ -1,3 +1,5 @@
+.PHONY: proto clean node
+
 PROTO_DIR = protofiles
 PROTO_OUT_DIR = .
 
@@ -9,3 +11,6 @@ proto:
 
 clean:
 	rm -f $(PROTO_DIR)/*.pb.go
+
+node:
+	@trap '' INT; go run ./node || true
