@@ -5,7 +5,6 @@ import (
 	util "Tapestry/util"
 	"context"
 	"fmt"
-	"log"
 )
 
 func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest) (*pb.MulticastResponse, error) {
@@ -14,7 +13,7 @@ func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest
 	new_port := int(req.NewPort)
 	new_id := req.NewID
 	util.Assert(0 <= level, "negative level")
-
+	status := 0
 	if level < util.DIGITS {
 		for d := range util.RADIX {
 			// dont LOCK only reading here?
@@ -29,10 +28,14 @@ func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest
 			}
 			conn, to_client, err := GetNodeClient(to_port)
 			if err != nil {
-				log.Panicf("error in connecting (temporary panic): %v", err.Error())
+				status = 1
+				continue
 			}
 			defer conn.Close()
-			to_client.InformHoleMulticast(ctx, &pb.MulticastRequest{NewPort: req.NewPort, NewID: req.NewID, OriginalLevel: req.OriginalLevel, Level: req.Level + 1})
+			_, err = to_client.InformHoleMulticast(ctx, &pb.MulticastRequest{NewPort: req.NewPort, NewID: req.NewID, OriginalLevel: req.OriginalLevel, Level: req.Level + 1})
+			if err != nil {
+				status = 1
+			}
 		}
 	}
 	// going to do n.RT[level][getdigit(new_id, level)] = new_port
@@ -44,11 +47,13 @@ func (n *Node) InformHoleMulticast(ctx context.Context, req *pb.MulticastRequest
 	// PrintRoutingTable()
 	conn, new_client, err := GetNodeClient(new_port)
 	if err != nil {
-		log.Panicf("error in connecting (temporary panic): %v", err.Error())
+		// log.Panicf("error in connecting (temporary panic): %v", err.Error())
+		status = 1
+	} else {
+		defer conn.Close()
+		new_client.BPUpdate(context.Background(), &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
 	}
-	defer conn.Close()
-	new_client.BPUpdate(context.Background(), &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
-	return &pb.MulticastResponse{Status: 0}, nil
+	return &pb.MulticastResponse{Status: int32(status)}, nil
 }
 
 func (n *Node) RTCopy(ctx context.Context, req *pb.Nothing) (*pb.RTCopyReponse, error) {
@@ -77,6 +82,7 @@ func (n *Node) Insert(BootstrapPort int) error {
 		fmt.Print(err.Error())
 		return err
 	}
+	fmt.Printf("aaaa %d\n", BootstrapPort)
 	resp, err := boot_client.Route(context.Background(), &pb.RouteRequest{Id: n.ID, Level: 0})
 	if err != nil {
 		return err
@@ -87,7 +93,7 @@ func (n *Node) Insert(BootstrapPort int) error {
 	// copy RT of root_port
 	root_conn, root_client, err := GetNodeClient(root_port)
 	if err != nil {
-		log.Panicf("error in connecting (temporary panic): %v", err.Error())
+		return err
 	}
 	root_resp, err := root_client.RTCopy(context.Background(), &pb.Nothing{})
 	if err != nil {
@@ -120,7 +126,8 @@ func (n *Node) Insert(BootstrapPort int) error {
 			}
 			conn, client, err := GetNodeClient(port)
 			if err != nil {
-				log.Panicf("error in connecting (temporary panic): %v", err.Error())
+				// log.Panicf("error in connecting (temporary panic): %v", err.Error())
+				continue
 			}
 			client.BPUpdate(context.Background(), &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
 			conn.Close()

@@ -37,6 +37,7 @@ func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
 	addr_string := fmt.Sprintf("localhost:%d", port)
 	conn, err := grpc.NewClient(addr_string, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
+		log.Printf("could not connect to port %d\n", port)
 		return nil, nil, err
 	}
 	return conn, pb.NewNodeServiceClient(conn), nil
@@ -248,7 +249,8 @@ func main() {
 	// PrintRoutingTable()
 	if err != nil {
 		log.Print(err.Error())
-		log.Panic("Could not insert\n")
+		log.Println("could not insert")
+		os.Exit(1)
 	}
 	log.Println("Inserted successfully")
 

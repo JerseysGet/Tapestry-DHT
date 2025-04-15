@@ -4,7 +4,6 @@ import (
 	pb "Tapestry/protofiles"
 	util "Tapestry/util"
 	"context"
-	"log"
 )
 
 func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteResponse, error) {
@@ -27,7 +26,9 @@ func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteRespon
 		/* Connect to this port and route on it */
 		conn, to_client, err := GetNodeClient(to_port)
 		if err != nil {
-			log.Panicf("error in connecting (temporary panic): %v", err.Error())
+			// log.Panicf("error in connecting (temporary panic): %v", err.Error())
+			d = (d + 1) % util.RADIX
+			continue
 		}
 		defer conn.Close()
 		return to_client.Route(ctx, &pb.RouteRequest{Id: id, Level: int32(level + 1)})
