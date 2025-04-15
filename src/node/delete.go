@@ -72,13 +72,16 @@ func (n *Node) RTUpdate(ctx context.Context, req *pb.RTUpdateRequest) (*pb.RTUpd
 		// connect to update back pointer of replacement node
 		conn, to_client, err := GetNodeClient(replacementPort)
 		if err != nil {
-			log.Panicf("error in connecting (temporary panic): %v", err.Error())
+			log.Printf("error in port: %d while connecting to send Back-Pointer update to port : %d, err: %v",n.Port, replacementPort, err.Error())
+			return &pb.RTUpdateResponse{Success: false}, nil
 		} else {
 
 			// update back pointer
 			_, err = to_client.BPUpdate(ctx, &pb.BPUpdateRequest{Id: n.ID, Port: int32(n.Port)})
 			if err != nil {
-				log.Panicf("error in sending BPUpdate: %v", err.Error())
+				log.Printf("error in sending BPUpdate: %v", err.Error())
+				conn.Close()
+				return &pb.RTUpdateResponse{Success: false}, nil
 			}
 			conn.Close()
 		}

@@ -116,6 +116,7 @@ func startSearchForRoot(port int) {
 
 func deleteGracefully(n *Node) {
 	var closest_port int
+	var closest_ID uint64
 	found := 0
 	for i := util.DIGITS - 1; i >= 0; i-- {
 		id_digit := util.GetDigit(n.ID, i)
@@ -126,6 +127,22 @@ func deleteGracefully(n *Node) {
 			if n.RT.Table[i][j] != -1 {
 				closest_port = n.RT.Table[i][j]
 				found = 1
+				conn, to_client, err := GetNodeClient(closest_port)
+				if err != nil {
+					log.Printf("error in connecting for GetID: %v", err.Error())
+					found = 0
+					continue
+				} else {
+					response, err := to_client.GetID(context.Background(), &pb.GetIDRequest{})
+					if err != nil {
+						log.Printf("error in GetID: %v", err.Error())
+						found = 0
+						conn.Close()
+						continue
+					}
+					closest_ID = response.ID
+					conn.Close()
+				}
 				break
 			}
 		}
@@ -133,23 +150,11 @@ func deleteGracefully(n *Node) {
 			break
 		}
 	}
-	var closest_ID uint64
+	
 	if found == 0 {
 		closest_port = -1
 		closest_ID = 0
-	} else {
-		conn, to_client, err := GetNodeClient(closest_port)
-		if err != nil {
-			log.Panicf("error in connecting (temporary panic) for GetID: %v", err.Error())
-		} else {
-			response, err := to_client.GetID(context.Background(), &pb.GetIDRequest{})
-			if err != nil {
-				log.Panicf("error in GetID: %v", err.Error())
-			}
-			closest_ID = response.ID
-			conn.Close()
-		}
-	}
+	} 
 
 	fmt.Printf("closest port found: %d\n", closest_port)
 	fmt.Printf("closest ID found: %s\n", util.HashToString(closest_ID))
@@ -161,11 +166,14 @@ func deleteGracefully(n *Node) {
 		}
 		conn, to_client, err := GetNodeClient(key_port)
 		if err != nil {
-			log.Panicf("error in connecting (temporary panic) for RTUpdate: %v", err.Error())
+			log.Printf("error in connecting for RTUpdate: %v", err.Error())
+			continue
 		} else {
 			response, err := to_client.RTUpdate(context.Background(), &pb.RTUpdateRequest{ReplacementID: closest_ID, ReplacementPort: int32(closest_port), ID: n.ID, Port: int32(n.Port)})
 			if err != nil {
-				log.Panicf("error in RTUpdate: %v", err.Error())
+				log.Printf("error in RTUpdate: %v", err.Error())
+				conn.Close()
+				continue
 			}
 			if response.Success {
 				fmt.Printf("Routing table updated successfully for port %d\n", key_port)
@@ -183,11 +191,14 @@ func deleteGracefully(n *Node) {
 			if val_port != n.Port && val_port != -1 {
 				conn, to_client, err := GetNodeClient(val_port)
 				if err != nil {
-					log.Panicf("error in connecting (temporary panic) for BPRemove: %v", err.Error())
+					log.Printf("error in connecting for BPRemove: %v", err.Error())
+					continue
 				} else {
 					response, err := to_client.BPRemove(context.Background(), &pb.BPRemoveRequest{Port: int32(n.Port)})
 					if err != nil {
-						log.Panicf("error in BPRemove: %v", err.Error())
+						log.Printf("error in BPRemove: %v", err.Error())
+						conn.Close()
+						continue
 					}
 					if response.Success {
 						fmt.Printf("Back pointer table updated successfully for port %d\n", val_port)
