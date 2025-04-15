@@ -294,6 +294,7 @@ func main() {
 		case sig := <-sigs:
 			// time.Sleep(1000 * time.Millisecond)
 			fmt.Printf("\nReceived signal: %s. Exiting...\n", sig)
+			is_dead.Store(true)
 			fmt.Println("Exiting.")
 			deleteGracefully(Self)
 			time.Sleep(500 * time.Millisecond)
