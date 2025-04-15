@@ -1,6 +1,7 @@
 package main
 
 import (
+	pb "Tapestry/protofiles"
 	util "Tapestry/util"
 	"bufio"
 	"context"
@@ -10,12 +11,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
-	"path/filepath"
-	pb "Tapestry/protofiles"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -112,8 +112,6 @@ func savePortToFile(port int) {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
-
-	fmt.Println("Port saved to ports.txt")
 }
 
 func startSearchForRoot(port int) {
@@ -161,17 +159,15 @@ func deleteGracefully(n *Node) {
 			break
 		}
 	}
-	
+
 	if found == 0 {
 		closest_port = -1
 		closest_ID = 0
-	} 
+	}
 	n.RT_lock.Unlock()
 
 	fmt.Printf("closest port found: %d\n", closest_port)
 	fmt.Printf("closest ID found: %s\n", util.HashToString(closest_ID))
-	// lock here maybe
-	// update routing table
 	n.BP_lock.Lock()
 	for key_port, _ := range n.BP.Set {
 		if key_port == n.Port {
@@ -196,11 +192,8 @@ func deleteGracefully(n *Node) {
 			conn.Close()
 		}
 	}
-
 	n.BP_lock.Unlock()
 
-	// lock here maybe
-	// update back pointer table
 	n.RT_lock.Lock()
 	for _, row := range n.RT.Table {
 		for _, val_port := range row {
@@ -243,7 +236,7 @@ func RepublishObjects() {
 				if err != nil {
 					fmt.Printf("[RE-PUBLISH ERROR] Object '%s': %v\n", obj.Name, err)
 				} else {
-					// fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
+					fmt.Printf("[RE-PUBLISH] Object '%s' re-published successfully\n", obj.Name)
 				}
 			}
 		}
@@ -296,7 +289,7 @@ func main() {
 	go func() {
 		for scanner.Scan() {
 			line := scanner.Text()
-			input <-line
+			input <- line
 		}
 	}()
 
@@ -327,13 +320,10 @@ func main() {
 			case "1":
 				var objectName, objectContent string
 				fmt.Print("Enter object name: ")
-				// fmt.Scanf("%s", &objectName) // Read the whole line for object name
+				// fmt.Scanf("%s", &objectName)
 				objectName = <-input
-				// Consume any extra newline characters in the input buffer
-				// fmt.Scanln() is a safe way to clear the buffer after scanning strings
-	
 				fmt.Print("Enter object content: ")
-				// fmt.Scanf("%s", &objectContent) // Read the whole line for object content
+				// fmt.Scanf("%s", &objectContent)
 				objectContent = <-input
 				obj := Object{
 					Name:    objectName,
@@ -349,7 +339,7 @@ func main() {
 				fmt.Println("Finding Object...")
 				var objectName string
 				fmt.Print("Enter object name: ")
-				// fmt.Scanln(&objectName) // Read the whole line for object name
+				// fmt.Scanln(&objectName)
 				objectName = <-input
 				object, err := Self.FindObject(objectName)
 				if err != nil {
@@ -360,7 +350,7 @@ func main() {
 			case "3":
 				var objectName string
 				fmt.Print("Enter object name: ")
-				// fmt.Scanln(&objectName) // Read the whole line for object name
+				// fmt.Scanln(&objectName)
 				objectName = <-input
 				err := Self.UnPublish(objectName)
 				if err != nil {
@@ -379,61 +369,5 @@ func main() {
 				fmt.Println("Invalid choice. Try again.")
 			}
 		}
-
-		// switch choice {
-		// case 1:
-		// 	var objectName, objectContent string
-		// 	fmt.Print("Enter object name: ")
-		// 	fmt.Scanf("%s", &objectName) // Read the whole line for object name
-
-		// 	// Consume any extra newline characters in the input buffer
-		// 	// fmt.Scanln() is a safe way to clear the buffer after scanning strings
-
-		// 	fmt.Print("Enter object content: ")
-		// 	fmt.Scanf("%s", &objectContent) // Read the whole line for object content
-
-		// 	obj := Object{
-		// 		Name:    objectName,
-		// 		Content: objectContent,
-		// 	}
-		// 	err := Self.AddObject(obj)
-		// 	if err != nil {
-		// 		fmt.Printf("Error publishing object: %v\n", err)
-		// 	} else {
-		// 		fmt.Println("Object successfully added and published!")
-		// 	}
-		// case 2:
-		// 	fmt.Println("Finding Object...")
-		// 	var objectName string
-		// 	fmt.Print("Enter object name: ")
-		// 	fmt.Scanln(&objectName) // Read the whole line for object name
-
-		// 	object, err := Self.FindObject(objectName)
-		// 	if err != nil {
-		// 		fmt.Printf("Error finding object: %v\n", err)
-		// 	} else {
-		// 		fmt.Printf("Object found! Name: %s, Content: %s\n", object.Name, object.Content)
-		// 	}
-		// case 3:
-		// 	var objectName string
-		// 	fmt.Print("Enter object name: ")
-		// 	fmt.Scanln(&objectName) // Read the whole line for object name
-
-		// 	err := Self.UnPublish(objectName)
-		// 	if err != nil {
-		// 		fmt.Printf("Error unpublishing object: %v\n", err)
-		// 	} else {
-		// 		fmt.Println("Object successfully unpublished!")
-		// 	}
-		// case 4:
-		// 	fmt.Println("Exiting.")
-		// 	deleteGracefully(Self)
-		// 	time.Sleep(500 * time.Millisecond)
-		// 	Self.GrpcServer.GracefulStop()
-		// 	fmt.Println("gRPC server stopped.")
-		// 	return
-		// default:
-		// 	fmt.Println("Invalid choice. Try again.")
-		// }
 	}
 }
