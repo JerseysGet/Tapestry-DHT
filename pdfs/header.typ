@@ -75,7 +75,7 @@
 #let title(content) = align(center, text(1.95em)[#content])
 #let subtitle(content) = align(center, text(1.4em)[#content])
 #let author(content) = align(center, par(text(size: 0.9em,[#content]), justify: false))
-#let long_date(d, m, y) = datetime(year: y, month: m, day: d).display("[weekday], [day] [month repr:long] [year]")
+#let long_date(d, m, y) = datetime(year: y, month: m, day: d, ).display("[weekday], [day] [month repr:long] [year]")
 #let short_date(d, m, y) = datetime(year: y, month: m, day: d).display("[day]-[month]-[year]")
 
 // Math stuff
