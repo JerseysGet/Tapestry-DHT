@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 )
 
 func (n *Node) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -43,7 +44,7 @@ func (n *Node) UnRegister(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 			_, err = client.RemoveObject(context.Background(), &pb.RemoveObjectRequest{
 				Object_ID: objectID,
 			})
-			if err != nil {
+			if err != nil && !strings.Contains(err.Error(), "Unavailable") {
 				log.Printf("RemoveObject failed on node %d: %v", port, err)
 			} else {
 				// fmt.Printf("[UNREGISTER] Informed node %d to remove object %d\n", port, objectID)
@@ -71,22 +72,29 @@ func (n *Node) RemoveObject(ctx context.Context, req *pb.RemoveObjectRequest) (*
 func (n *Node) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupResponse, error) {
 	objectID := uint64(req.Object_ID)
 
-	n.Publishers_lock.RLock()
-	defer n.Publishers_lock.RUnlock()
+	n.Publishers_lock.Lock()
+	defer n.Publishers_lock.Unlock()
 
 	portSet, ok := n.Object_Publishers[objectID]
 	if !ok || len(portSet) == 0 {
-		return nil, fmt.Errorf("object not found in publishers list")
+		return &pb.LookupResponse{Port: -1}, nil
 	}
 
-	var firstPort int
-	for p := range portSet {
-		firstPort = p
-		break
+	for port := range portSet {
+		conn, _, err := GetNodeClient(port)
+		if err != nil {
+			// Node is likely dead — remove it
+			delete(portSet, port)
+			continue
+		}
+		conn.Close()
+		// Found an alive node
+		return &pb.LookupResponse{Port: int32(port)}, nil
 	}
-	return &pb.LookupResponse{
-		Port: int32(firstPort),
-	}, nil
+
+	// No live nodes found
+	delete(n.Object_Publishers, objectID)
+	return &pb.LookupResponse{Port: -1}, nil
 }
 
 func (n *Node) GetObject(ctx context.Context, req *pb.ObjectRequest) (*pb.ObjectResponse, error) {
