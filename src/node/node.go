@@ -186,9 +186,9 @@ func deleteGracefully(n *Node) {
 				continue
 			}
 			if response.Success {
-				fmt.Printf("Routing table updated successfully for port %d\n", key_port)
+				log.Printf("Routing table updated successfully for port %d\n", key_port)
 			} else {
-				fmt.Printf("Failed to update routing table for port %d\n", key_port)
+				log.Printf("Failed to update routing table for port %d\n", key_port)
 			}
 			conn.Close()
 		}
@@ -211,9 +211,9 @@ func deleteGracefully(n *Node) {
 						continue
 					}
 					if response.Success {
-						fmt.Printf("Back pointer table updated successfully for port %d\n", val_port)
+						log.Printf("Back pointer table updated successfully for port %d\n", val_port)
 					} else {
-						fmt.Printf("Failed to remove from Back pointer table for port %d\n", val_port)
+						log.Printf("Failed to remove from Back pointer table for port %d\n", val_port)
 					}
 					conn.Close()
 				}
