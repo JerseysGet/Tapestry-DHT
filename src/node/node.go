@@ -14,7 +14,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
+	"path/filepath"
 	pb "Tapestry/protofiles"
 
 	"google.golang.org/grpc"
@@ -68,6 +68,16 @@ func InitNode(port int, id uint64) *Node {
 	}
 	pb.RegisterNodeServiceServer(ret.GrpcServer, ret)
 	return ret
+}
+
+func setupLogger(port int) {
+	logDir := filepath.Join(".", "logs")
+	logFilePath := filepath.Join(logDir, fmt.Sprintf("%d.log", port))
+	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	log.SetOutput(file)
 }
 
 func PrintRoutingTable() {
@@ -260,6 +270,7 @@ func main() {
 	var boot_port int
 	fmt.Print("Enter bootstrap port (0 for empty network): ")
 	fmt.Scan(&boot_port)
+	setupLogger(Self.Port)
 	err := Self.Insert(boot_port)
 	// PrintRoutingTable()
 	if err != nil {
