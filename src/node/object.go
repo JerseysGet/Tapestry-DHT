@@ -80,6 +80,7 @@ func (n *Node) FindObject(name string) (Object, error) {
 	}
 
 	publisherPort := int(lookupResp.Port)
+	fmt.Printf("Got publisher port %d\n", publisherPort)
 	if publisherPort == -1 {
 		return Object{}, fmt.Errorf("[FIND OBJECT] No publishers found for object '%s'", name)
 	}

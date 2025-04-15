@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -45,6 +46,10 @@ func GetNodeClient(port int) (*grpc.ClientConn, pb.NodeServiceClient, error) {
 		return nil, nil, err
 	}
 	return conn, pb.NewNodeServiceClient(conn), nil
+}
+
+func (n *Node) Ping(ctx context.Context, req *pb.Nothing) (*pb.Nothing, error) {
+	return &pb.Nothing{}, nil
 }
 
 func InitNode(port int, id uint64) *Node {
@@ -202,11 +207,13 @@ func deleteGracefully(n *Node) {
 
 var Self *Node
 var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+var is_dead atomic.Bool
 
 func RepublishObjects() {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for {
+		if is_dead.Load() { return }
 		select {
 		case <-ticker.C:
 			for _, obj := range Self.Objects {
@@ -228,6 +235,7 @@ func TakeInput() {
 	fmt.Scan(&port)
 	fmt.Print("Enter ID (0 for random): ")
 	fmt.Scan(&id_str)
+	is_dead.Store(false)
 	var id uint64
 	if id_str == "0" {
 		id = rng.Uint64()
@@ -337,6 +345,7 @@ func main() {
 					fmt.Println("Object successfully unpublished!")
 				}
 			case "4":
+				is_dead.Store(true)
 				fmt.Println("Exiting.")
 				deleteGracefully(Self)
 				time.Sleep(500 * time.Millisecond)
