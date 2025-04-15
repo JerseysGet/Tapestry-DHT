@@ -4,6 +4,10 @@ import (
 	pb "Tapestry/protofiles"
 	util "Tapestry/util"
 	"context"
+	"log"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteResponse, error) {
@@ -33,6 +37,7 @@ func (n *Node) Route(ctx context.Context, req *pb.RouteRequest) (*pb.RouteRespon
 		defer conn.Close()
 		return to_client.Route(ctx, &pb.RouteRequest{Id: id, Level: int32(level + 1)})
 	}
-	util.Assert(false, "did not find anyone to route to")
-	return nil, nil
+	// util.Assert(false, "did not find anyone to route to")
+	log.Printf("did not find anyone to route to\n");
+	return nil, status.Errorf(codes.NotFound, "no route found for id=%s\n", util.HashToString(id))
 }

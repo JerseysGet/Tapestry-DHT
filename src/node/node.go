@@ -2,13 +2,17 @@ package main
 
 import (
 	util "Tapestry/util"
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"math/rand"
 	"net"
 	"os"
+	"os/signal"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	pb "Tapestry/protofiles"
@@ -256,6 +260,17 @@ func main() {
 
 	go RepublishObjects()
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGTSTP)
+	input := make(chan string)
+	go func() {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			line := scanner.Text()
+			input <-line
+		}
+	}()
+
 	for {
 		fmt.Println("\nChoose an option:")
 		fmt.Println("[1] Publish")
@@ -263,64 +278,133 @@ func main() {
 		fmt.Println("[3] Unpublish")
 		fmt.Println("[4] Exit")
 
-		var choice int
+		// var choice int
 		fmt.Print("Enter choice: ")
-		fmt.Scan(&choice)
+		// fmt.Scan(&choice)
 
-		switch choice {
-		case 1:
-			var objectName, objectContent string
-			fmt.Print("Enter object name: ")
-			fmt.Scanf("%s", &objectName) // Read the whole line for object name
-
-			// Consume any extra newline characters in the input buffer
-			// fmt.Scanln() is a safe way to clear the buffer after scanning strings
-
-			fmt.Print("Enter object content: ")
-			fmt.Scanf("%s", &objectContent) // Read the whole line for object content
-
-			obj := Object{
-				Name:    objectName,
-				Content: objectContent,
-			}
-			err := Self.AddObject(obj)
-			if err != nil {
-				fmt.Printf("Error publishing object: %v\n", err)
-			} else {
-				fmt.Println("Object successfully added and published!")
-			}
-		case 2:
-			fmt.Println("Finding Object...")
-			var objectName string
-			fmt.Print("Enter object name: ")
-			fmt.Scanln(&objectName) // Read the whole line for object name
-
-			object, err := Self.FindObject(objectName)
-			if err != nil {
-				fmt.Printf("Error finding object: %v\n", err)
-			} else {
-				fmt.Printf("Object found! Name: %s, Content: %s\n", object.Name, object.Content)
-			}
-		case 3:
-			var objectName string
-			fmt.Print("Enter object name: ")
-			fmt.Scanln(&objectName) // Read the whole line for object name
-
-			err := Self.UnPublish(objectName)
-			if err != nil {
-				fmt.Printf("Error unpublishing object: %v\n", err)
-			} else {
-				fmt.Println("Object successfully unpublished!")
-			}
-		case 4:
+		select {
+		case sig := <-sigs:
+			time.Sleep(1000 * time.Millisecond)
+			fmt.Printf("\nReceived signal: %s. Exiting...\n", sig)
 			fmt.Println("Exiting.")
 			deleteGracefully(Self)
 			time.Sleep(500 * time.Millisecond)
 			Self.GrpcServer.GracefulStop()
 			fmt.Println("gRPC server stopped.")
 			return
-		default:
-			fmt.Println("Invalid choice. Try again.")
+		case line := <-input:
+			line = strings.TrimSpace(line)
+			switch line {
+			case "1":
+				var objectName, objectContent string
+				fmt.Print("Enter object name: ")
+				fmt.Scanf("%s", &objectName) // Read the whole line for object name
+	
+				// Consume any extra newline characters in the input buffer
+				// fmt.Scanln() is a safe way to clear the buffer after scanning strings
+	
+				fmt.Print("Enter object content: ")
+				fmt.Scanf("%s", &objectContent) // Read the whole line for object content
+	
+				obj := Object{
+					Name:    objectName,
+					Content: objectContent,
+				}
+				err := Self.AddObject(obj)
+				if err != nil {
+					fmt.Printf("Error publishing object: %v\n", err)
+				} else {
+					fmt.Println("Object successfully added and published!")
+				}
+			case "2":
+				fmt.Println("Finding Object...")
+				var objectName string
+				fmt.Print("Enter object name: ")
+				fmt.Scanln(&objectName) // Read the whole line for object name
+	
+				object, err := Self.FindObject(objectName)
+				if err != nil {
+					fmt.Printf("Error finding object: %v\n", err)
+				} else {
+					fmt.Printf("Object found! Name: %s, Content: %s\n", object.Name, object.Content)
+				}
+			case "3":
+				var objectName string
+				fmt.Print("Enter object name: ")
+				fmt.Scanln(&objectName) // Read the whole line for object name
+	
+				err := Self.UnPublish(objectName)
+				if err != nil {
+					fmt.Printf("Error unpublishing object: %v\n", err)
+				} else {
+					fmt.Println("Object successfully unpublished!")
+				}
+			case "4":
+				fmt.Println("Exiting.")
+				deleteGracefully(Self)
+				time.Sleep(500 * time.Millisecond)
+				Self.GrpcServer.GracefulStop()
+				fmt.Println("gRPC server stopped.")
+				return
+			default:
+				fmt.Println("Invalid choice. Try again.")
+			}
 		}
+
+		// switch choice {
+		// case 1:
+		// 	var objectName, objectContent string
+		// 	fmt.Print("Enter object name: ")
+		// 	fmt.Scanf("%s", &objectName) // Read the whole line for object name
+
+		// 	// Consume any extra newline characters in the input buffer
+		// 	// fmt.Scanln() is a safe way to clear the buffer after scanning strings
+
+		// 	fmt.Print("Enter object content: ")
+		// 	fmt.Scanf("%s", &objectContent) // Read the whole line for object content
+
+		// 	obj := Object{
+		// 		Name:    objectName,
+		// 		Content: objectContent,
+		// 	}
+		// 	err := Self.AddObject(obj)
+		// 	if err != nil {
+		// 		fmt.Printf("Error publishing object: %v\n", err)
+		// 	} else {
+		// 		fmt.Println("Object successfully added and published!")
+		// 	}
+		// case 2:
+		// 	fmt.Println("Finding Object...")
+		// 	var objectName string
+		// 	fmt.Print("Enter object name: ")
+		// 	fmt.Scanln(&objectName) // Read the whole line for object name
+
+		// 	object, err := Self.FindObject(objectName)
+		// 	if err != nil {
+		// 		fmt.Printf("Error finding object: %v\n", err)
+		// 	} else {
+		// 		fmt.Printf("Object found! Name: %s, Content: %s\n", object.Name, object.Content)
+		// 	}
+		// case 3:
+		// 	var objectName string
+		// 	fmt.Print("Enter object name: ")
+		// 	fmt.Scanln(&objectName) // Read the whole line for object name
+
+		// 	err := Self.UnPublish(objectName)
+		// 	if err != nil {
+		// 		fmt.Printf("Error unpublishing object: %v\n", err)
+		// 	} else {
+		// 		fmt.Println("Object successfully unpublished!")
+		// 	}
+		// case 4:
+		// 	fmt.Println("Exiting.")
+		// 	deleteGracefully(Self)
+		// 	time.Sleep(500 * time.Millisecond)
+		// 	Self.GrpcServer.GracefulStop()
+		// 	fmt.Println("gRPC server stopped.")
+		// 	return
+		// default:
+		// 	fmt.Println("Invalid choice. Try again.")
+		// }
 	}
 }

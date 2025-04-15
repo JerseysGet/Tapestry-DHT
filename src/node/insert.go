@@ -82,7 +82,7 @@ func (n *Node) Insert(BootstrapPort int) error {
 		fmt.Print(err.Error())
 		return err
 	}
-	fmt.Printf("aaaa %d\n", BootstrapPort)
+
 	resp, err := boot_client.Route(context.Background(), &pb.RouteRequest{Id: n.ID, Level: 0})
 	if err != nil {
 		return err
