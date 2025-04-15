@@ -263,8 +263,8 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGTSTP)
 	input := make(chan string)
+	scanner := bufio.NewScanner(os.Stdin)
 	go func() {
-		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			line := scanner.Text()
 			input <-line
@@ -284,7 +284,7 @@ func main() {
 
 		select {
 		case sig := <-sigs:
-			time.Sleep(1000 * time.Millisecond)
+			// time.Sleep(1000 * time.Millisecond)
 			fmt.Printf("\nReceived signal: %s. Exiting...\n", sig)
 			fmt.Println("Exiting.")
 			deleteGracefully(Self)
@@ -298,14 +298,14 @@ func main() {
 			case "1":
 				var objectName, objectContent string
 				fmt.Print("Enter object name: ")
-				fmt.Scanf("%s", &objectName) // Read the whole line for object name
-	
+				// fmt.Scanf("%s", &objectName) // Read the whole line for object name
+				objectName = <-input
 				// Consume any extra newline characters in the input buffer
 				// fmt.Scanln() is a safe way to clear the buffer after scanning strings
 	
 				fmt.Print("Enter object content: ")
-				fmt.Scanf("%s", &objectContent) // Read the whole line for object content
-	
+				// fmt.Scanf("%s", &objectContent) // Read the whole line for object content
+				objectContent = <-input
 				obj := Object{
 					Name:    objectName,
 					Content: objectContent,
@@ -320,8 +320,8 @@ func main() {
 				fmt.Println("Finding Object...")
 				var objectName string
 				fmt.Print("Enter object name: ")
-				fmt.Scanln(&objectName) // Read the whole line for object name
-	
+				// fmt.Scanln(&objectName) // Read the whole line for object name
+				objectName = <-input
 				object, err := Self.FindObject(objectName)
 				if err != nil {
 					fmt.Printf("Error finding object: %v\n", err)
@@ -331,8 +331,8 @@ func main() {
 			case "3":
 				var objectName string
 				fmt.Print("Enter object name: ")
-				fmt.Scanln(&objectName) // Read the whole line for object name
-	
+				// fmt.Scanln(&objectName) // Read the whole line for object name
+				objectName = <-input
 				err := Self.UnPublish(objectName)
 				if err != nil {
 					fmt.Printf("Error unpublishing object: %v\n", err)
