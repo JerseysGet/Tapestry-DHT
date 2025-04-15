@@ -79,7 +79,7 @@ func (n *Node) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupRes
 	if !ok || len(portSet) == 0 {
 		return &pb.LookupResponse{Port: -1}, nil
 	}
-	fmt.Printf("Portset %v\n", portSet)
+	// fmt.Printf("Portset %v\n", portSet)
 	for port := range portSet {
 		// fmt.Printf("Trying to contact %d\n", port)
 		conn, clnt, err := GetNodeClient(port)
