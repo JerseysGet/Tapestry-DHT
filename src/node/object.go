@@ -78,7 +78,11 @@ func (n *Node) FindObject(name string) (Object, error) {
 	if err != nil {
 		return Object{}, fmt.Errorf("lookup failed: %v", err)
 	}
+
 	publisherPort := int(lookupResp.Port)
+	if publisherPort == -1 {
+		return Object{}, fmt.Errorf("[FIND OBJECT] No publishers found for object '%s'", name)
+	}
 
 	pubConn, err := n.ConnectToNode(publisherPort)
 	if err != nil {
@@ -97,8 +101,6 @@ func (n *Node) FindObject(name string) (Object, error) {
 		Name:    objResp.Name,
 		Content: objResp.Content,
 	}
-
-	// fmt.Printf("[FIND] Retrieved object '%s' with ID %d from publisher %d\n", object.Name, objectID, publisherPort)
 
 	return object, nil
 }
