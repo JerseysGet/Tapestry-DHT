@@ -65,9 +65,25 @@ This project implements a decentralized overlay network inspired by Tapestry, en
 - BPRemove: The final step, which removes the exiting node from the backpointer tables of all other nodes in the network.
 - Once all routing and backpointer tables are updated across the network, the exiting node gracefully leaves the system.
 == *Add Object:*
+- Accepts an object as input from the user and stores it in the node’s local `Objects` map.
+- Ensures redundancy by invoking the `StoreObject()` RPC on up to two other nodes, selected by scanning the routing table. These nodes then replicate the object in their respective local maps.
+
 == *Object Publish:*
+- The `Publish()` function is periodically invoked every 5 seconds in a separate goroutine.
+- It first identifies the root node using `FindRoot()`, which internally calls `Route()`.
+- The function then calls the `Register()` RPC on the root node to register itself as a publisher of the object.
+- This repeated invocation provides fault tolerance, ensuring that in the event of a failure, a new root is automatically assigned and updated.
+
 == *Object Unpublish:*
+- Removes the object from the node’s local `Objects` map.
+- Sends an `Unregister()` RPC to the root node, which in turn instructs all other publishers of the object to remove it from their local storage as well.
+- This ensures consistency across the system while preserving the desired redundancy.
+
 == *Find Object:*
+- Retrieves the object specified by the user by contacting one of its active publishers.
+- Calls the `LookUp()` RPC on the root node to obtain the port number of a live publisher for the requested object.
+- It then calls the `GetObject()` RPC on the selected publisher to fetch the object.
+- If the object is successfully found, it is returned. Otherwise, a message indicating the absence of the object is displayed.
 
 = Performance Test Results
 
