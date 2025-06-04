@@ -1,0 +1,1 @@
+Aa decentralized overlay network inspired by Tapestry using Go and gRPC supporting scalable, fault-tolerant prefix-based routing with dynamic node membership and fast lookups in large-scale distributed systems.
